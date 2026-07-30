@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>픽세라 의정부점 개원 로드맵</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="픽세라 의정부점 개원 로드맵">
+<meta property="og:description" content="픽세라 지점 개원 준비 진행판입니다. 공유받은 비밀번호로 열어보세요.">
+<meta property="og:image" content="https://roadmap.pixcera.kr/pixcera-og.png">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="400">
+<meta property="og:url" content="https://roadmap.pixcera.kr/uijeongbu.html">
+<link rel="icon" type="image/png" href="/favicon.png">
+</head>
+<body>
+<style>
+  /* 픽세라 브랜드 컬러 가이드: 퍼플 #6551D9 · 라벤더 #DDD5F3 · 화이트 #FFFFFF · 라임 #CFFF3D(소량) · 차콜 #302E35 */
+  :root {
+    --bg: #F7F5FB;
+    --surface: #FFFFFF;
+    --surface2: #EFEBF8;
+    --ink: #302E35;
+    --muted: #6E687F;
+    --line: #E3DDF2;
+    --accent: #6551D9;
+    --accent-soft: #EAE5F9;
+    --lime: #CFFF3D;
+    --lime-ink: #302E35;
+    --warn: #A16207;
+    --warn-soft: #FBF3DF;
+    --danger: #B3403A;
+    --danger-soft: #F9E9E8;
+    --chip-branch: #EFEBF8;
+    --chip-branch-ink: #5A4BBE;
+    --chip-hq: #E9E8EC;
+    --chip-hq-ink: #302E35;
+    --chip-joint: #DDD5F3;
+    --chip-joint-ink: #46389E;
+    --shadow: 0 1px 3px rgba(48,46,53,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #211F28;
+      --surface: #2A2833;
+      --surface2: #34313F;
+      --ink: #EAE7F1;
+      --muted: #A29CB4;
+      --line: #3E3A4C;
+      --accent: #9F8FF2;
+      --accent-soft: #37305A;
+      --lime: #CFFF3D;
+      --lime-ink: #302E35;
+      --warn: #E2B45E;
+      --warn-soft: #332A0F;
+      --danger: #E08983;
+      --danger-soft: #3A1F1D;
+      --chip-branch: #322D4A;
+      --chip-branch-ink: #C3B8F5;
+      --chip-hq: #33323A;
+      --chip-hq-ink: #D6D4DC;
+      --chip-joint: #3B3357;
+      --chip-joint-ink: #CFC4F8;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F7F5FB; --surface: #FFFFFF; --surface2: #EFEBF8;
+    --ink: #302E35; --muted: #6E687F; --line: #E3DDF2;
+    --accent: #6551D9; --accent-soft: #EAE5F9;
+    --lime: #CFFF3D; --lime-ink: #302E35;
+    --warn: #A16207; --warn-soft: #FBF3DF;
+    --danger: #B3403A; --danger-soft: #F9E9E8;
+    --chip-branch: #EFEBF8; --chip-branch-ink: #5A4BBE;
+    --chip-hq: #E9E8EC; --chip-hq-ink: #302E35;
+    --chip-joint: #DDD5F3; --chip-joint-ink: #46389E;
+    --shadow: 0 1px 3px rgba(48,46,53,.08);
+  }
+  :root[data-theme="dark"] {
+    --bg: #211F28; --surface: #2A2833; --surface2: #34313F;
+    --ink: #EAE7F1; --muted: #A29CB4; --line: #3E3A4C;
+    --accent: #9F8FF2; --accent-soft: #37305A;
+    --lime: #CFFF3D; --lime-ink: #302E35;
+    --warn: #E2B45E; --warn-soft: #332A0F;
+    --danger: #E08983; --danger-soft: #3A1F1D;
+    --chip-branch: #322D4A; --chip-branch-ink: #C3B8F5;
+    --chip-hq: #33323A; --chip-hq-ink: #D6D4DC;
+    --chip-joint: #3B3357; --chip-joint-ink: #CFC4F8;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  /* ---------- 비밀번호 문 ---------- */
+  #gate {
+    position: fixed; inset: 0; z-index: 50;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .gate-card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow);
+    padding: 36px 32px; width: 100%; max-width: 380px; text-align: center;
+  }
+  .gate-card h1 { font-size: 19px; margin: 14px 0 4px; }
+  .gate-card p { color: var(--muted); font-size: 13.5px; margin: 0 0 22px; }
+  .gate-card input {
+    width: 100%; padding: 11px 14px; font-size: 16px;
+    border: 1.5px solid var(--line); border-radius: 9px;
+    background: var(--bg); color: var(--ink);
+    text-align: center; letter-spacing: .35em; font-variant-numeric: tabular-nums;
+  }
+  .gate-card input:focus { outline: none; border-color: var(--accent); }
+  .gate-card button {
+    width: 100%; margin-top: 12px; padding: 11px;
+    font-size: 15px; font-weight: 700; letter-spacing: .02em;
+    background: var(--accent); color: #fff; border: none; border-radius: 9px; cursor: pointer;
+  }
+  .gate-card button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  #gate-err { color: var(--danger); font-size: 13px; min-height: 20px; margin-top: 10px; }
+
+  /* ---------- 픽셀 로고 ---------- */
+  .pxgrid {
+    display: grid; grid-template-columns: repeat(7, 7px); grid-auto-rows: 7px;
+    gap: 2px; width: max-content; margin: 0 auto;
+  }
+  .pxgrid.inline { margin: 0; }
+  .pxgrid i { border-radius: 1px; background: var(--line); }
+  .pxgrid i.on { background: var(--accent); }
+
+  /* ---------- 머리글 ---------- */
+  header.board { margin-bottom: 26px; }
+  .eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: .16em;
+    color: var(--accent); text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  h1.branch { font-size: 30px; margin: 0 0 2px; letter-spacing: -.01em; text-wrap: balance; }
+  .subtitle { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
+
+  .total-box {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: var(--shadow); padding: 16px 18px;
+  }
+  .total-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .total-label { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .total-num { font-size: 26px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .total-num small { font-size: 13px; font-weight: 600; color: var(--muted); margin-left: 6px; }
+  .bar { height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+  .bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; width: 0%; transition: width .35s ease; }
+  @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* ---------- 딱지(칩) ---------- */
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11.5px; font-weight: 700; letter-spacing: .01em;
+    padding: 2px 9px; border-radius: 99px; white-space: nowrap;
+  }
+  .chip.branch { background: var(--chip-branch); color: var(--chip-branch-ink); }
+  .chip.hq     { background: var(--chip-hq);     color: var(--chip-hq-ink); }
+  .chip.joint  { background: var(--chip-joint);  color: var(--chip-joint-ink); }
+  .chip.legal  { background: var(--warn-soft);   color: var(--warn); }
+  .chip.deadline { background: var(--danger-soft); color: var(--danger); }
+  .chip.ongoing  { background: var(--lime); color: var(--lime-ink); }
+
+  /* ---------- 구간 ---------- */
+  section.period {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: var(--shadow); margin-top: 18px; overflow: hidden;
+  }
+  .period-head {
+    padding: 15px 18px 13px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .period-dday {
+    font-size: 12px; font-weight: 800; letter-spacing: .06em;
+    color: var(--accent); background: var(--accent-soft);
+    padding: 3px 10px; border-radius: 7px; font-variant-numeric: tabular-nums;
+  }
+  .period-title { font-size: 16.5px; font-weight: 800; margin: 0; flex: 1; min-width: 140px; }
+  .period-count { font-size: 13px; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .period-bar { height: 4px; background: var(--surface2); }
+  .period-bar > i { display: block; height: 100%; background: var(--accent); width: 0%; transition: width .35s ease; }
+  @media (prefers-reduced-motion: reduce) { .period-bar > i { transition: none; } }
+
+  /* ---------- 항목 ---------- */
+  ul.items { list-style: none; margin: 0; padding: 4px 0; }
+  li.item { border-bottom: 1px solid var(--line); }
+  li.item:last-child { border-bottom: none; }
+  .item-label {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 13px 18px; cursor: pointer;
+  }
+  .item-label:hover { background: var(--surface2); }
+  .item input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 21px; height: 21px; flex: none; margin-top: 2px;
+    border: 2px solid var(--muted); border-radius: 6px;
+    background: var(--surface); cursor: pointer; position: relative;
+  }
+  .item input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+  .item input[type="checkbox"]:checked::after {
+    content: ""; position: absolute; left: 5.5px; top: 1.5px;
+    width: 5px; height: 10px; border: solid #fff; border-width: 0 2.5px 2.5px 0;
+    transform: rotate(43deg);
+  }
+  .item input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .item-body { flex: 1; min-width: 0; }
+  .item-name { font-size: 14.5px; font-weight: 700; }
+  .item.done .item-name { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .item-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+  .item-note { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+  .item-date { font-size: 11.5px; color: var(--accent); font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- 순서 사슬 안내 ---------- */
+  .chain {
+    margin: 10px 18px 14px; padding: 11px 14px;
+    background: var(--surface2); border-radius: 9px;
+    font-size: 12.5px; color: var(--muted);
+  }
+  .chain b { color: var(--ink); }
+  .chain .steps { margin-top: 4px; line-height: 1.9; }
+  .chain .steps span {
+    background: var(--surface); border: 1px solid var(--line);
+    padding: 2px 8px; border-radius: 6px; white-space: nowrap;
+    font-weight: 600; color: var(--ink); font-size: 12px;
+  }
+  .chain .steps em { font-style: normal; color: var(--accent); font-weight: 800; padding: 0 3px; }
+
+  /* ---------- 바닥글 ---------- */
+  footer.board {
+    margin-top: 26px; padding: 18px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+  footer.board h2 { font-size: 14px; margin: 0 0 6px; }
+  footer.board p { font-size: 12.5px; color: var(--muted); margin: 0 0 12px; }
+  #report-btn {
+    padding: 10px 18px; font-size: 14px; font-weight: 700;
+    background: var(--accent); color: #fff; border: none; border-radius: 9px; cursor: pointer;
+  }
+  #report-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  #report-msg { font-size: 12.5px; margin-top: 10px; color: var(--muted); min-height: 18px; }
+  #report-fallback {
+    display: none; width: 100%; margin-top: 10px; height: 180px;
+    font-size: 12px; font-family: ui-monospace, Consolas, monospace;
+    background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 9px; padding: 10px;
+  }
+
+  #board { display: none; }
+</style>
+
+<div id="gate">
+  <form class="gate-card" id="gate-form">
+    <div class="pxgrid" id="gate-logo" aria-hidden="true"></div>
+    <h1>픽세라 의정부점 개원 로드맵</h1>
+    <p>공유받은 비밀번호를 입력하세요</p>
+    <input type="password" id="gate-pw" inputmode="numeric" autocomplete="off" aria-label="비밀번호" />
+    <button type="submit">열기</button>
+    <div id="gate-err" role="alert"></div>
+  </form>
+</div>
+
+<div class="wrap" id="board">
+  <header class="board">
+    <div class="eyebrow"><span class="pxgrid inline" id="head-logo" aria-hidden="true"></span> PIXCERA · 개원 준비 진행판</div>
+    <h1 class="branch">의정부점 개원 로드맵</h1>
+    <p class="subtitle">개원일(D-day)을 기준으로 구간별 준비 항목을 확인하고 체크하세요. 완료한 항목은 날짜가 함께 기록됩니다.</p>
+    <div class="total-box">
+      <div class="total-row">
+        <span class="total-label">전체 진행률</span>
+        <span class="total-num"><span id="total-pct">0</span>%<small id="total-count"></small></span>
+      </div>
+      <div class="bar"><i id="total-bar"></i></div>
+      <div class="legend">
+        <span class="chip branch">🏠 지점</span>
+        <span class="chip hq">🏢 본사</span>
+        <span class="chip joint">🤝 공동</span>
+        <span class="chip legal">⚖️ 전문가 확인</span>
+        <span class="chip deadline">⏰ 마감선</span>
+        <span class="chip ongoing">⟶ 이어지는 항목</span>
+      </div>
+    </div>
+  </header>
+
+  <div id="sections"></div>
+
+  <footer class="board">
+    <h2>진행 상황 본사에 보내기</h2>
+    <p>체크 내용은 이 기기(브라우저)에만 저장됩니다. 아래 단추를 누르면 진행 보고 글이 복사됩니다 — 카톡·메일에 붙여 넣어 본사로 보내 주세요.</p>
+    <button id="report-btn" type="button">진행 보고 복사하기</button>
+    <div id="report-msg"></div>
+    <textarea id="report-fallback" readonly aria-label="진행 보고 내용"></textarea>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var BRANCH_NAME = "의정부점";
+  var STORE_KEY = "pixcera-open-uijeongbu";
+  var PW_HASH = "5ffd8cf0aa51a1f41cb532e6a213bf4b0b3ebe6a92d7cf3bceab52d6dd22c2a8";
+
+  /* ---------- 데이터 ---------- */
+  var SECTIONS = [
+    {
+      id: "p90", dday: "D-90 ~ D-60", title: "터 잡기 — 법적·공간 준비",
+      items: [
+        { id: "opendate",who: "joint",  name: "개원일 지정", note: "이 진행판의 모든 구간(D-90 등)이 이 날짜를 기준으로 계산됩니다" },
+        { id: "contract",who: "joint",  name: "본사와 지점 계약", note: "본사 표준 계약서로 체결" },
+        { id: "site",    who: "joint",  name: "입지 확정·임대차 계약", note: "본사 입지 기준 체크리스트로 사전 검토 후 계약" },
+        { id: "reqcheck",who: "joint",  legal: true, name: "의료기관 개설 요건 확인", note: "건물 용도·면적·주차 등 — 관할 보건소·행정사에 사전 문의" },
+        { id: "bizreg",  who: "branch", legal: true, name: "사업자등록·의료기관 개설신고 착수", note: "지역 보건소마다 요구 서류가 다름. 뒤의 플레이스 등록·결제 신청의 전제 조건" },
+        { id: "interior",who: "joint",  name: "인테리어 설계 확정", note: "본사 표준 도면 + 지점 상황 반영. 시술실 수·동선은 예약 슬롯 계산과 직결" },
+        { id: "device",  who: "joint",  name: "의료기기(레이저 등) 발주", note: "납기가 길어 일찍 발주. 본사 표준 장비 목록 기준" },
+        { id: "budget",  who: "branch", name: "개원 자금 계획표 작성", note: "개원 후 3개월 운영비까지 포함해서 계획" },
+        { id: "vicehire",who: "joint",  ongoing: true, name: "부원장 구인 착수", note: "일찍 시작할수록 좋음. 채용 공고·조건 설계는 본사와 함께, 개원까지 계속 진행" }
+      ]
+    },
+    {
+      id: "p60", dday: "D-60 ~ D-30", title: "뼈대 세우기 — 사람·계약",
+      items: [
+        { id: "staffhire", who: "branch", ongoing: true, name: "직원 채용 착수 (의료진·코디)", note: "본사 채용 공고 표준문·면접 질문지 제공. 확정될 때까지 계속" },
+        { id: "vicetrain", who: "hq", ongoing: true, name: "부원장 교육 (채용 확정 즉시 시작)", note: "기간이 아니라 ‘채용됨’이라는 사건에 걸린 항목 — 뽑히는 날부터 시술 표준·안전 규정·시스템 교육" },
+        { id: "manual",    who: "joint", name: "지점 시술장부/매뉴얼 완성", note: "본사 표준 시술 카드에 지점 장비·인력 차이(오버레이)를 반영해 확정. 안전 칸은 잠금 영역 — 차이는 반드시 의료진 승인" },
+        { id: "labor",     who: "branch", name: "근로계약서·4대보험 준비", note: "본사 표준 근로계약서 양식 제공" },
+        { id: "waste",     who: "branch", name: "의료폐기물 수거 업체 계약", note: "개설신고에 필요한 경우가 많음" },
+        { id: "insurance", who: "branch", name: "의료배상책임보험·화재보험 가입", note: "" },
+        { id: "pg",        who: "branch", name: "카드 단말기·결제(PG) 신청", note: "사업자등록 후에만 가능" },
+        { id: "network",   who: "branch", name: "통신·인터넷 회선 신청", note: "검문소(지점 물리서버) 설치의 전제 조건" },
+        { id: "cctv",      who: "branch", name: "CCTV 설치·개인정보 안내문 계획", note: "안내문은 본사 표준 양식 사용" },
+        { id: "youtube",   who: "joint",  name: "원내용 유튜브 촬영", note: "본사와 일정·내용을 조율해 촬영 진행" }
+      ],
+      chain: {
+        label: "내용 사슬 — 앞이 끝나야 다음이 열립니다",
+        steps: ["시술장부/매뉴얼 완성", "위키 오버레이 개설", "직원 교육", "예약 시술 메뉴 설정"]
+      }
+    },
+    {
+      id: "p30", dday: "D-30 ~ D-7", title: "픽세라 시스템 이식",
+      items: [
+        { id: "staffdone", who: "branch", deadline: "D-14", name: "직원 채용 마무리 + 근로계약 체결", note: "개원 필수 인원(코디 최소 커버리지)이 D-14까지 확정되도록 집중 관리" },
+        { id: "vicedone",  who: "joint",  deadline: "D-14", name: "부원장 채용 확정", note: "확정 즉시 교육 이어서 진행" },
+        { id: "accounts",  who: "hq",     name: "지점 계정 세트 발급", note: "구글 워크스페이스 등 지점용 계정 일괄 발급" },
+        { id: "server",    who: "hq",     name: "지점 물리서버(검문소)·지점 클라우드 설치", note: "서버 배치도 v1 기준" },
+        { id: "mailbox",   who: "hq",     name: "관제판·우체통 연결 확인", note: "지점 상태 편지(JSON)가 본사에 도착하는지 시험" },
+        { id: "schedule",  who: "joint",  name: "직원 시간표 모듈에 지점 직원 등록", note: "주41시간·A/B조·코디 커버리지 규칙 교육 포함" },
+        { id: "wiki",      who: "hq",     name: "위키(시술 카드) 지점 오버레이 개설 + 열람 교육", note: "완성된 시술장부가 재료. 안전 칸 잠금부터 교육" },
+        { id: "homepage",  who: "joint",  legal: true, name: "지점 홈페이지 개설", note: "본사 표준 틀 + 지점 정보(원장 소개·진료시간·오시는 길). 예약 단추 자리는 비워두기. 게시 전 의료광고 심의 대상 여부 확인" },
+        { id: "place",     who: "branch", name: "네이버 스마트플레이스 등록", note: "사업자등록증·개설신고 서류 필요. 승인 심사에 며칠 걸림 — 서류 나오는 대로 바로" },
+        { id: "booking",   who: "joint",  name: "네이버 예약 개설 + 시술 메뉴·시간 설정", note: "플레이스 승인 뒤에만 가능. 메뉴·소요시간은 시술장부 기준" },
+        { id: "bookbtn",   who: "joint",  name: "홈페이지에 예약 단추 연결", note: "네이버 예약이 열린 뒤 연결" },
+        { id: "hqlink",    who: "hq",     name: "대표 홈페이지에 지점 연동", note: "본사 홈페이지 ‘지점 안내’에 새 지점 노출" },
+        { id: "training",  who: "hq",     name: "직원 교육 + 이수 서명", note: "시술 표준·응대 표준·시스템 사용법. 교육 이수 체크리스트에 서명" }
+      ],
+      chain: {
+        label: "순서 사슬 — 앞이 끝나야 다음이 열립니다",
+        steps: ["사업자등록·개설신고", "플레이스 등록(승인 대기)", "네이버 예약 개설", "홈페이지 예약 단추", "개원 홍보"]
+      }
+    },
+    {
+      id: "p7", dday: "D-7 ~ D-day", title: "리허설",
+      items: [
+        { id: "rehearsal", who: "joint",  name: "모의 운영 리허설", note: "가짜 고객으로 접수→시술→결제 전 과정을 최소 1회. 문제점 목록 작성" },
+        { id: "privacy",   who: "branch", name: "개인정보 처리방침·동의서 비치 확인", note: "본사 표준 양식" },
+        { id: "marketing", who: "joint",  legal: true, name: "개원 안내 마케팅", note: "플레이스 소식·사진 채우기 포함. 의료광고 심의 대상 여부 확인 후 집행" },
+        { id: "emergency", who: "hq",     name: "비상 연락 체계 확인", note: "장비 고장·시스템 장애 시 연락처 안내문 1장 비치" }
+      ]
+    },
+    {
+      id: "pafter", dday: "개원 후 첫 달", title: "안착 확인",
+      items: [
+        { id: "weekly",  who: "joint", name: "주 1회 본사-지점 점검 통화", note: "첫 달만. 관제판 카드를 함께 보며 진행" },
+        { id: "settle",  who: "joint", name: "첫 달 결산·초기 KPI 확인", note: "" },
+        { id: "retro",   who: "hq",    name: "개원 준비 회고 — 이 목록 갱신", note: "" }
+      ]
+    }
+  ];
+
+  var WHO = {
+    branch: { cls: "branch", label: "🏠 지점" },
+    hq:     { cls: "hq",     label: "🏢 본사" },
+    joint:  { cls: "joint",  label: "🤝 공동" }
+  };
+
+  /* ---------- 픽셀 로고 (픽세라 공식 7×7) ---------- */
+  var LOGO = [
+    "1110111",
+    "1011001",
+    "1101101",
+    "0110110",
+    "1011011",
+    "1001101",
+    "1110111"
+  ];
+  function drawLogo(el) {
+    if (!el) return;
+    for (var r = 0; r < 7; r++) {
+      for (var c = 0; c < 7; c++) {
+        var i = document.createElement("i");
+        if (LOGO[r].charAt(c) === "1") i.className = "on";
+        el.appendChild(i);
+      }
+    }
+  }
+  drawLogo(document.getElementById("gate-logo"));
+  drawLogo(document.getElementById("head-logo"));
+
+  /* ---------- 저장 ---------- */
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function saveState(s) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) {}
+  }
+  var state = loadState();
+
+  /* ---------- 비밀번호 문 ---------- */
+  function sha256hex(text) {
+    var data = new TextEncoder().encode(text);
+    return crypto.subtle.digest("SHA-256", data).then(function (buf) {
+      var arr = Array.prototype.slice.call(new Uint8Array(buf));
+      return arr.map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+    });
+  }
+  function openBoard() {
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("board").style.display = "block";
+  }
+  var unlocked = false;
+  try { unlocked = sessionStorage.getItem("pxr-gate-ok") === "1"; } catch (e) {}
+  if (unlocked) openBoard();
+  else document.getElementById("gate-pw").focus();
+
+  document.getElementById("gate-form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var pw = document.getElementById("gate-pw").value.trim();
+    sha256hex(pw).then(function (hex) {
+      if (hex === PW_HASH) {
+        try { sessionStorage.setItem("pxr-gate-ok", "1"); } catch (e) {}
+        openBoard();
+      } else {
+        document.getElementById("gate-err").textContent = "비밀번호가 맞지 않습니다.";
+        document.getElementById("gate-pw").value = "";
+        document.getElementById("gate-pw").focus();
+      }
+    });
+  });
+
+  /* ---------- 그리기 ---------- */
+  function fmtDate(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + "." + (d.getMonth() + 1) + "." + d.getDate();
+  }
+
+  var sectionsEl = document.getElementById("sections");
+
+  SECTIONS.forEach(function (sec) {
+    var section = document.createElement("section");
+    section.className = "period";
+    section.id = "sec-" + sec.id;
+
+    var head = document.createElement("div");
+    head.className = "period-head";
+    head.innerHTML =
+      '<span class="period-dday">' + sec.dday + '</span>' +
+      '<h2 class="period-title">' + sec.title + '</h2>' +
+      '<span class="period-count" id="count-' + sec.id + '"></span>';
+    section.appendChild(head);
+
+    var bar = document.createElement("div");
+    bar.className = "period-bar";
+    bar.innerHTML = '<i id="bar-' + sec.id + '"></i>';
+    section.appendChild(bar);
+
+    var ul = document.createElement("ul");
+    ul.className = "items";
+
+    sec.items.forEach(function (item) {
+      var li = document.createElement("li");
+      li.className = "item";
+      li.id = "item-" + item.id;
+
+      var chips = '<span class="chip ' + WHO[item.who].cls + '">' + WHO[item.who].label + "</span>";
+      if (item.legal)    chips += '<span class="chip legal">⚖️ 전문가 확인</span>';
+      if (item.deadline) chips += '<span class="chip deadline">⏰ 마감선 ' + item.deadline + "</span>";
+      if (item.ongoing)  chips += '<span class="chip ongoing">⟶ 이어지는 항목</span>';
+
+      li.innerHTML =
+        '<label class="item-label">' +
+          '<input type="checkbox" data-id="' + item.id + '" aria-label="' + item.name + '" />' +
+          '<div class="item-body">' +
+            '<div class="item-name">' + item.name + "</div>" +
+            '<div class="item-chips">' + chips + "</div>" +
+            (item.note ? '<div class="item-note">' + item.note + "</div>" : "") +
+            '<div class="item-date" id="date-' + item.id + '"></div>' +
+          "</div>" +
+        "</label>";
+      ul.appendChild(li);
+    });
+    section.appendChild(ul);
+
+    if (sec.chain) {
+      var chain = document.createElement("div");
+      chain.className = "chain";
+      chain.innerHTML =
+        "<b>" + sec.chain.label + "</b>" +
+        '<div class="steps">' +
+        sec.chain.steps.map(function (s) { return "<span>" + s + "</span>"; }).join("<em>→</em>") +
+        "</div>";
+      section.appendChild(chain);
+    }
+
+    sectionsEl.appendChild(section);
+  });
+
+  function refresh() {
+    var total = 0, done = 0;
+    SECTIONS.forEach(function (sec) {
+      var secTotal = sec.items.length, secDone = 0;
+      sec.items.forEach(function (item) {
+        var ts = state[item.id];
+        var li = document.getElementById("item-" + item.id);
+        var cb = li.querySelector("input");
+        var dateEl = document.getElementById("date-" + item.id);
+        if (ts) {
+          secDone++;
+          li.classList.add("done");
+          cb.checked = true;
+          dateEl.textContent = "완료 · " + fmtDate(ts);
+        } else {
+          li.classList.remove("done");
+          cb.checked = false;
+          dateEl.textContent = "";
+        }
+      });
+      total += secTotal; done += secDone;
+      document.getElementById("count-" + sec.id).textContent = secDone + " / " + secTotal;
+      document.getElementById("bar-" + sec.id).style.width = (secTotal ? Math.round(secDone / secTotal * 100) : 0) + "%";
+    });
+    var pct = total ? Math.round(done / total * 100) : 0;
+    document.getElementById("total-pct").textContent = pct;
+    document.getElementById("total-count").textContent = done + " / " + total + " 완료";
+    document.getElementById("total-bar").style.width = pct + "%";
+  }
+
+  sectionsEl.addEventListener("change", function (ev) {
+    var cb = ev.target;
+    if (!cb.matches || !cb.matches('input[type="checkbox"]')) return;
+    var id = cb.getAttribute("data-id");
+    if (cb.checked) state[id] = Date.now();
+    else delete state[id];
+    saveState(state);
+    refresh();
+  });
+
+  refresh();
+
+  /* ---------- 진행 보고 내려받기 ---------- */
+  function buildReport() {
+    var now = new Date();
+    var stamp = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+    var lines = [];
+    lines.push("# 픽세라 " + BRANCH_NAME + " 개원 준비 진행 보고");
+    lines.push("");
+    lines.push("- 보고일: " + stamp);
+    var total = 0, done = 0;
+    SECTIONS.forEach(function (sec) {
+      sec.items.forEach(function (it) { total++; if (state[it.id]) done++; });
+    });
+    lines.push("- 전체 진행률: " + (total ? Math.round(done / total * 100) : 0) + "% (" + done + "/" + total + ")");
+    lines.push("");
+    SECTIONS.forEach(function (sec) {
+      lines.push("## " + sec.dday + " · " + sec.title);
+      sec.items.forEach(function (it) {
+        if (state[it.id]) lines.push("- [x] " + it.name + " (완료 " + fmtDate(state[it.id]) + ")");
+        else lines.push("- [ ] " + it.name);
+      });
+      lines.push("");
+    });
+    return { text: lines.join("\n"), stamp: stamp };
+  }
+
+  document.getElementById("report-btn").addEventListener("click", function () {
+    var report = buildReport();
+    var msg = document.getElementById("report-msg");
+    var fallback = document.getElementById("report-fallback");
+    function showFallback(note) {
+      fallback.style.display = "block";
+      fallback.value = report.text;
+      fallback.focus();
+      fallback.select();
+      msg.textContent = note;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(report.text).then(function () {
+        msg.textContent = "복사되었습니다. 카톡·메일에 붙여 넣어 본사로 보내 주세요.";
+      }).catch(function () {
+        showFallback("자동 복사가 안 되는 환경입니다. 아래 내용을 직접 복사해 주세요.");
+      });
+    } else {
+      showFallback("아래 내용을 직접 복사해서 본사에 보내 주세요.");
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
