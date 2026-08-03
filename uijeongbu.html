@@ -129,6 +129,23 @@
   }
   .gate-card button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   #gate-err { color: var(--danger); font-size: 13px; min-height: 20px; margin-top: 10px; }
+  .gate-tag {
+    margin-top: 12px; font-size: 12px; font-weight: 700;
+    letter-spacing: .18em; color: var(--accent);
+  }
+
+  /* ---------- 슬로건 ---------- */
+  footer.slogan {
+    margin-top: 44px; text-align: center;
+    color: var(--muted); font-size: 13.5px; line-height: 2;
+  }
+  footer.slogan .lead { color: var(--ink); font-weight: 700; }
+  footer.slogan p { margin: 0 0 14px; }
+  footer.slogan .brand {
+    margin-top: 18px; color: var(--accent);
+    font-weight: 800; font-size: 14px; letter-spacing: .14em;
+  }
+  footer.slogan .pxgrid { margin: 0 auto 16px; }
 
   /* ---------- 픽셀 로고 ---------- */
   .pxgrid {
@@ -275,6 +292,7 @@
     <input type="password" id="gate-pw" inputmode="numeric" autocomplete="off" aria-label="비밀번호" />
     <button type="submit">열기</button>
     <div id="gate-err" role="alert"></div>
+    <div class="gate-tag">PIXEL BY PIXEL.</div>
   </form>
 </div>
 
@@ -308,6 +326,14 @@
     <button id="report-btn" type="button">진행 보고 복사하기</button>
     <div id="report-msg"></div>
     <textarea id="report-fallback" readonly aria-label="진행 보고 내용"></textarea>
+  </footer>
+
+  <footer class="slogan">
+    <div class="pxgrid" id="foot-logo" aria-hidden="true"></div>
+    <p class="lead">우리는 작은 디테일에 집착합니다.</p>
+    <p>고객의 피부를 픽셀 단위로 분석하고,<br>가장 자연스럽고 조화로운 아름다움을 설계합니다.</p>
+    <p>작은 디테일에 집착하여 큰 변화를 만듭니다.</p>
+    <div class="brand">PIXEL BY PIXEL. PIXCERA.</div>
   </footer>
 </div>
 
@@ -426,6 +452,7 @@
   }
   drawLogo(document.getElementById("gate-logo"));
   drawLogo(document.getElementById("head-logo"));
+  drawLogo(document.getElementById("foot-logo"));
 
   /* ---------- 저장 ---------- */
   function loadState() {
