@@ -289,7 +289,23 @@
   .eq-qty { width: 64px; }
   .eq-vendor { flex: 1; min-width: 110px; }
   .eq-price { width: 110px; }
+  .eq-cat { width: 120px; }
   .eq-due { width: 140px; }
+  .equip-group { margin-bottom: 12px; }
+  .equip-group-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 12.5px; font-weight: 800; color: var(--accent);
+    border-bottom: 1px solid var(--line); padding-bottom: 4px;
+  }
+  .equip-group-sum {
+    font-size: 12px; color: var(--muted); font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .equip-total {
+    margin-top: 10px; padding-top: 10px; border-top: 1.5px solid var(--line);
+    font-size: 13.5px; font-weight: 800; text-align: right; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
   .eq-label { font-size: 11.5px; color: var(--muted); font-weight: 700; }
   .eq-handle {
     cursor: grab; color: var(--muted); font-size: 14px; font-weight: 700;
@@ -708,6 +724,31 @@
     return i;
   }
 
+  var EQUIP_CATS = ["색소", "리프팅", "항노화", "문제성 피부", "관리장비"];
+
+  function eqCatOf(eq) { return EQUIP_CATS.indexOf(eq.cat) >= 0 ? eq.cat : ""; }
+  function priceNum(v) {
+    var d = String(v || "").replace(/[^0-9]/g, "");
+    return d ? parseInt(d, 10) : 0;
+  }
+  function fmtWon(n) { return n.toLocaleString("ko-KR") + "원"; }
+
+  function renderTotals() {
+    var box = document.getElementById("equip-box");
+    if (!box) return;
+    Array.prototype.forEach.call(box.querySelectorAll(".equip-group"), function (g) {
+      var gcat = g.getAttribute("data-cat");
+      var sub = equip.reduce(function (a, e) {
+        return a + (eqCatOf(e) === gcat ? priceNum(e.price) : 0);
+      }, 0);
+      var el = g.querySelector(".equip-group-sum");
+      if (el) el.textContent = sub ? fmtWon(sub) : "";
+    });
+    var total = equip.reduce(function (a, e) { return a + priceNum(e.price); }, 0);
+    var totalEl = box.querySelector(".equip-total");
+    if (totalEl) totalEl.textContent = total ? "가격 합계 " + fmtWon(total) : "";
+  }
+
   var dragRow = null;
   function attachEquipDrag(handle, row) {
     handle.addEventListener("pointerdown", function (ev) {
@@ -720,91 +761,148 @@
       if (!dragRow) return;
       var el = document.elementFromPoint(ev.clientX, ev.clientY);
       var over = el && el.closest ? el.closest(".equip-row") : null;
-      if (!over || over === dragRow || over.parentNode !== dragRow.parentNode) return;
-      var r = over.getBoundingClientRect();
-      var after = ev.clientY > r.top + r.height / 2;
-      dragRow.parentNode.insertBefore(dragRow, after ? over.nextSibling : over);
+      if (over && over !== dragRow) {
+        var r = over.getBoundingClientRect();
+        var after = ev.clientY > r.top + r.height / 2;
+        over.parentNode.insertBefore(dragRow, after ? over.nextSibling : over);
+        return;
+      }
+      var grp = el && el.closest ? el.closest(".equip-group") : null;
+      if (grp && !grp.querySelector(".equip-row")) {
+        grp.querySelector(".equip-rows").appendChild(dragRow);
+      }
     });
     function endDrag() {
       if (!dragRow) return;
-      var boxEl = dragRow.parentNode;
       dragRow.classList.remove("dragging");
       dragRow = null;
-      var order = Array.prototype.map.call(boxEl.querySelectorAll(".equip-row"), function (r2) {
-        return Number(r2.getAttribute("data-idx"));
+      var box = document.getElementById("equip-box");
+      var newEquip = [];
+      Array.prototype.forEach.call(box.querySelectorAll(".equip-group"), function (g) {
+        var gcat = g.getAttribute("data-cat");
+        Array.prototype.forEach.call(g.querySelectorAll(".equip-row"), function (r2) {
+          var it = equip[Number(r2.getAttribute("data-idx"))];
+          if (it) { it.cat = gcat; newEquip.push(it); }
+        });
       });
-      var changed = order.some(function (v, i) { return v !== i; });
-      if (changed) {
-        equip = order.map(function (i) { return equip[i]; });
-        saveEquip(); scheduleSync();
-        renderEquip();
-      }
+      if (newEquip.length === equip.length) equip = newEquip;
+      saveEquip(); scheduleSync();
+      renderEquip();
     }
     handle.addEventListener("pointerup", endDrag);
     handle.addEventListener("pointercancel", endDrag);
+  }
+
+  function buildEquipRow(eq, idx) {
+    var row = document.createElement("div"); row.className = "equip-row";
+    row.setAttribute("data-idx", idx);
+    var l1 = document.createElement("div"); l1.className = "equip-line";
+    var handle = document.createElement("span");
+    handle.className = "eq-handle"; handle.textContent = "⠿";
+    handle.title = "끌어서 순서·범주 변경"; handle.setAttribute("aria-label", "끌어서 순서·범주 변경");
+    attachEquipDrag(handle, row);
+    var name = mkEqInput("eq-name", "장비명", eq.name);
+    name.addEventListener("input", function () { eq.name = name.value; saveEquip(); scheduleSync(); });
+    var qty = mkEqInput("eq-qty", "수량", eq.qty);
+    qty.type = "number"; qty.min = "1"; qty.setAttribute("aria-label", "수량");
+    qty.addEventListener("input", function () { eq.qty = qty.value; saveEquip(); scheduleSync(); });
+    var del = document.createElement("button");
+    del.type = "button"; del.className = "eq-del"; del.textContent = "✕";
+    del.setAttribute("aria-label", "장비 삭제");
+    del.addEventListener("click", function () {
+      var i = equip.indexOf(eq);
+      if (i >= 0) equip.splice(i, 1);
+      saveEquip(); scheduleSync(); renderEquip();
+    });
+    l1.appendChild(handle); l1.appendChild(name); l1.appendChild(qty); l1.appendChild(del);
+
+    var l2 = document.createElement("div"); l2.className = "equip-line";
+    var cat = document.createElement("select");
+    cat.className = "eq-cat"; cat.setAttribute("aria-label", "범주");
+    [""].concat(EQUIP_CATS).forEach(function (c) {
+      var o = document.createElement("option");
+      o.value = c; o.textContent = c || "범주 없음";
+      cat.appendChild(o);
+    });
+    cat.value = eqCatOf(eq);
+    cat.addEventListener("change", function () {
+      eq.cat = cat.value; saveEquip(); scheduleSync(); renderEquip();
+    });
+    var vendor = mkEqInput("eq-vendor", "업체(공급사)", eq.vendor);
+    vendor.addEventListener("input", function () { eq.vendor = vendor.value; saveEquip(); scheduleSync(); });
+    var price = mkEqInput("eq-price", "가격(원)", priceNum(eq.price) ? priceNum(eq.price).toLocaleString("ko-KR") : (eq.price || ""));
+    price.setAttribute("inputmode", "numeric");
+    price.setAttribute("aria-label", "가격");
+    price.addEventListener("input", function () {
+      var d = price.value.replace(/[^0-9]/g, "");
+      eq.price = d;
+      price.value = d ? Number(d).toLocaleString("ko-KR") : "";
+      saveEquip(); scheduleSync(); renderTotals();
+    });
+    var dueLabel = document.createElement("span");
+    dueLabel.className = "eq-label"; dueLabel.textContent = "납기";
+    var due = mkEqInput("eq-due", "", eq.due);
+    due.type = "date"; due.setAttribute("aria-label", "납기 예정일");
+    due.addEventListener("input", function () { eq.due = due.value; saveEquip(); scheduleSync(); });
+    var status = document.createElement("select");
+    status.className = "eq-status"; status.setAttribute("aria-label", "상태");
+    EQUIP_STATUSES.forEach(function (s) {
+      var o = document.createElement("option"); o.value = s; o.textContent = s;
+      status.appendChild(o);
+    });
+    status.value = eq.status || "검토 중";
+    status.addEventListener("change", function () {
+      eq.status = status.value; saveEquip(); scheduleSync(); updateEquipHeader();
+    });
+    l2.appendChild(cat); l2.appendChild(vendor); l2.appendChild(price);
+    l2.appendChild(dueLabel); l2.appendChild(due); l2.appendChild(status);
+
+    row.appendChild(l1); row.appendChild(l2);
+    return row;
   }
 
   function renderEquip() {
     var box = document.getElementById("equip-box");
     if (!box) return;
     box.textContent = "";
-    equip.forEach(function (eq, idx) {
-      var row = document.createElement("div"); row.className = "equip-row";
-      row.setAttribute("data-idx", idx);
-      var l1 = document.createElement("div"); l1.className = "equip-line";
-      var handle = document.createElement("span");
-      handle.className = "eq-handle"; handle.textContent = "⠿";
-      handle.title = "끌어서 순서 변경"; handle.setAttribute("aria-label", "끌어서 순서 변경");
-      attachEquipDrag(handle, row);
-      var name = mkEqInput("eq-name", "장비명", eq.name);
-      name.addEventListener("input", function () { eq.name = name.value; saveEquip(); scheduleSync(); });
-      var qty = mkEqInput("eq-qty", "수량", eq.qty);
-      qty.type = "number"; qty.min = "1"; qty.setAttribute("aria-label", "수량");
-      qty.addEventListener("input", function () { eq.qty = qty.value; saveEquip(); scheduleSync(); });
-      var del = document.createElement("button");
-      del.type = "button"; del.className = "eq-del"; del.textContent = "✕";
-      del.setAttribute("aria-label", "장비 삭제");
-      del.addEventListener("click", function () {
-        equip.splice(idx, 1); saveEquip(); scheduleSync(); renderEquip();
+    var cats = EQUIP_CATS.slice();
+    if (equip.some(function (e) { return eqCatOf(e) === ""; })) cats.push("");
+    cats.forEach(function (gcat) {
+      var group = document.createElement("div");
+      group.className = "equip-group";
+      group.setAttribute("data-cat", gcat);
+      var head = document.createElement("div");
+      head.className = "equip-group-head";
+      var label = document.createElement("span");
+      label.textContent = gcat || "범주 없음";
+      var sum = document.createElement("span");
+      sum.className = "equip-group-sum";
+      head.appendChild(label); head.appendChild(sum);
+      group.appendChild(head);
+      var rowsEl = document.createElement("div");
+      rowsEl.className = "equip-rows";
+      equip.forEach(function (eq, idx) {
+        if (eqCatOf(eq) === gcat) rowsEl.appendChild(buildEquipRow(eq, idx));
       });
-      l1.appendChild(handle); l1.appendChild(name); l1.appendChild(qty); l1.appendChild(del);
-
-      var l2 = document.createElement("div"); l2.className = "equip-line";
-      var vendor = mkEqInput("eq-vendor", "업체(공급사)", eq.vendor);
-      vendor.addEventListener("input", function () { eq.vendor = vendor.value; saveEquip(); scheduleSync(); });
-      var price = mkEqInput("eq-price", "가격(원)", eq.price);
-      price.setAttribute("inputmode", "numeric");
-      price.setAttribute("aria-label", "가격");
-      price.addEventListener("input", function () { eq.price = price.value; saveEquip(); scheduleSync(); });
-      var dueLabel = document.createElement("span");
-      dueLabel.className = "eq-label"; dueLabel.textContent = "납기";
-      var due = mkEqInput("eq-due", "", eq.due);
-      due.type = "date"; due.setAttribute("aria-label", "납기 예정일");
-      due.addEventListener("input", function () { eq.due = due.value; saveEquip(); scheduleSync(); });
-      var status = document.createElement("select");
-      status.className = "eq-status"; status.setAttribute("aria-label", "상태");
-      EQUIP_STATUSES.forEach(function (s) {
-        var o = document.createElement("option"); o.value = s; o.textContent = s;
-        status.appendChild(o);
+      group.appendChild(rowsEl);
+      var add = document.createElement("button");
+      add.type = "button"; add.className = "equip-add"; add.textContent = "+ 장비 추가";
+      add.addEventListener("click", function () {
+        equip.push({ name: "", qty: "", vendor: "", price: "", due: "", status: "검토 중", cat: gcat });
+        saveEquip(); scheduleSync(); renderEquip();
+        var g2 = document.querySelector('.equip-group[data-cat="' + gcat + '"]');
+        if (g2) {
+          var names = g2.querySelectorAll(".eq-name");
+          if (names.length) names[names.length - 1].focus();
+        }
       });
-      status.value = eq.status || "검토 중";
-      status.addEventListener("change", function () {
-        eq.status = status.value; saveEquip(); scheduleSync(); updateEquipHeader();
-      });
-      l2.appendChild(vendor); l2.appendChild(price); l2.appendChild(dueLabel); l2.appendChild(due); l2.appendChild(status);
-
-      row.appendChild(l1); row.appendChild(l2);
-      box.appendChild(row);
+      group.appendChild(add);
+      box.appendChild(group);
     });
-    var add = document.createElement("button");
-    add.type = "button"; add.className = "equip-add"; add.textContent = "+ 장비 추가";
-    add.addEventListener("click", function () {
-      equip.push({ name: "", qty: "", vendor: "", price: "", due: "", status: "검토 중" });
-      saveEquip(); scheduleSync(); renderEquip();
-      var names = box.querySelectorAll(".eq-name");
-      if (names.length) names[names.length - 1].focus();
-    });
-    box.appendChild(add);
+    var totalEl = document.createElement("div");
+    totalEl.className = "equip-total";
+    box.appendChild(totalEl);
+    renderTotals();
     updateEquipHeader();
   }
 
