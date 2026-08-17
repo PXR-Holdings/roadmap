@@ -743,7 +743,17 @@
     var d = String(v || "").replace(/[^0-9]/g, "");
     return d ? parseInt(d, 10) : 0;
   }
-  function fmtWon(n) { return n.toLocaleString("ko-KR") + "원"; }
+  /* 가격 단위는 만원 — 990 입력 = 990만원. 1억 이상은 억 단위로 묶어 표시 */
+  function fmtWon(n) {
+    if (n >= 10000) {
+      var eok = Math.floor(n / 10000);
+      var rest = n % 10000;
+      return rest
+        ? eok.toLocaleString("ko-KR") + "억 " + rest.toLocaleString("ko-KR") + "만원"
+        : eok.toLocaleString("ko-KR") + "억원";
+    }
+    return n.toLocaleString("ko-KR") + "만원";
+  }
 
   function renderTotals() {
     var box = document.getElementById("equip-box");
@@ -861,7 +871,7 @@
     });
     var vendor = mkEqInput("eq-vendor", "업체(공급사)", eq.vendor);
     vendor.addEventListener("input", function () { eq.vendor = vendor.value; saveEquip(); scheduleSync(); });
-    var price = mkEqInput("eq-price", "가격(원)", priceNum(eq.price) ? priceNum(eq.price).toLocaleString("ko-KR") : (eq.price || ""));
+    var price = mkEqInput("eq-price", "가격(만원)", priceNum(eq.price) ? priceNum(eq.price).toLocaleString("ko-KR") : (eq.price || ""));
     price.setAttribute("inputmode", "numeric");
     price.setAttribute("aria-label", "가격");
     price.addEventListener("input", function () {
