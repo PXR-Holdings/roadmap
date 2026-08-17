@@ -288,6 +288,7 @@
   .eq-name { flex: 1; min-width: 120px; }
   .eq-qty { width: 64px; }
   .eq-vendor { flex: 1; min-width: 110px; }
+  .eq-price { width: 110px; }
   .eq-due { width: 140px; }
   .eq-label { font-size: 11.5px; color: var(--muted); font-weight: 700; }
   .eq-handle {
@@ -772,6 +773,10 @@
       var l2 = document.createElement("div"); l2.className = "equip-line";
       var vendor = mkEqInput("eq-vendor", "업체(공급사)", eq.vendor);
       vendor.addEventListener("input", function () { eq.vendor = vendor.value; saveEquip(); scheduleSync(); });
+      var price = mkEqInput("eq-price", "가격(원)", eq.price);
+      price.setAttribute("inputmode", "numeric");
+      price.setAttribute("aria-label", "가격");
+      price.addEventListener("input", function () { eq.price = price.value; saveEquip(); scheduleSync(); });
       var dueLabel = document.createElement("span");
       dueLabel.className = "eq-label"; dueLabel.textContent = "납기";
       var due = mkEqInput("eq-due", "", eq.due);
@@ -787,7 +792,7 @@
       status.addEventListener("change", function () {
         eq.status = status.value; saveEquip(); scheduleSync(); updateEquipHeader();
       });
-      l2.appendChild(vendor); l2.appendChild(dueLabel); l2.appendChild(due); l2.appendChild(status);
+      l2.appendChild(vendor); l2.appendChild(price); l2.appendChild(dueLabel); l2.appendChild(due); l2.appendChild(status);
 
       row.appendChild(l1); row.appendChild(l2);
       box.appendChild(row);
@@ -795,7 +800,7 @@
     var add = document.createElement("button");
     add.type = "button"; add.className = "equip-add"; add.textContent = "+ 장비 추가";
     add.addEventListener("click", function () {
-      equip.push({ name: "", qty: "", vendor: "", due: "", status: "검토 중" });
+      equip.push({ name: "", qty: "", vendor: "", price: "", due: "", status: "검토 중" });
       saveEquip(); scheduleSync(); renderEquip();
       var names = box.querySelectorAll(".eq-name");
       if (names.length) names[names.length - 1].focus();
