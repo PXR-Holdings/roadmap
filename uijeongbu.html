@@ -260,6 +260,43 @@
   }
   .chain .steps em { font-style: normal; color: var(--accent); font-weight: 800; padding: 0 3px; }
 
+  /* ---------- 장비 목록 (의료기기 발주 항목 전용) ---------- */
+  .equip-wrap { padding: 0 18px 14px 53px; }
+  .equip-toggle {
+    font-size: 12.5px; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: none; border-radius: 7px;
+    padding: 5px 12px; cursor: pointer; font-family: inherit;
+  }
+  .equip-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .equip-box {
+    margin-top: 10px; border: 1px solid var(--line); border-radius: 9px;
+    background: var(--bg); padding: 10px 12px;
+  }
+  .equip-row { border-bottom: 1px dashed var(--line); padding: 8px 0; display: flex; flex-direction: column; gap: 6px; }
+  .equip-row:first-child { padding-top: 0; }
+  .equip-line { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .equip-row input, .equip-row select {
+    font-family: inherit; font-size: 13px; padding: 6px 8px;
+    border: 1px solid var(--line); border-radius: 6px;
+    background: var(--surface); color: var(--ink); min-width: 0;
+  }
+  .equip-row input:focus, .equip-row select:focus { outline: none; border-color: var(--accent); }
+  .eq-name { flex: 1; min-width: 120px; }
+  .eq-qty { width: 64px; }
+  .eq-vendor { flex: 1; min-width: 110px; }
+  .eq-due { width: 140px; }
+  .eq-label { font-size: 11.5px; color: var(--muted); font-weight: 700; }
+  .eq-del {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 15px; padding: 2px 6px; font-family: inherit;
+  }
+  .eq-del:hover { color: var(--danger); }
+  .equip-add {
+    margin-top: 8px; font-size: 12.5px; font-weight: 700; color: var(--accent);
+    background: none; border: 1.5px dashed var(--accent); border-radius: 7px;
+    padding: 5px 12px; cursor: pointer; font-family: inherit;
+  }
+
   /* ---------- 바닥글 ---------- */
   footer.board {
     margin-top: 26px; padding: 18px;
@@ -650,6 +687,130 @@
 
   refresh();
 
+  /* ---------- 장비 목록 (의료기기 발주 항목 전용) ---------- */
+  var EQUIP_KEY = STORE_KEY + "-equip";
+  var EQUIP_STATUSES = ["검토 중", "발주 완료", "입고 완료"];
+  function loadEquip() {
+    try { return JSON.parse(localStorage.getItem(EQUIP_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function saveEquip() {
+    try { localStorage.setItem(EQUIP_KEY, JSON.stringify(equip)); } catch (e) {}
+  }
+  var equip = loadEquip();
+  var equipOpen = false;
+
+  function equipSummary() {
+    if (!equip.length) return "";
+    var done = equip.filter(function (e) { return e.status === "입고 완료"; }).length;
+    return "장비 " + equip.length + "종 · 입고 " + done;
+  }
+
+  function updateEquipHeader() {
+    var t = document.getElementById("equip-toggle");
+    if (t) t.textContent = (equipOpen ? "▾ " : "▸ ") + "장비 목록 (" + equip.length + ")";
+    var chip = document.getElementById("equip-sum");
+    if (chip) {
+      var s = equipSummary();
+      chip.textContent = s;
+      chip.style.display = s ? "" : "none";
+    }
+  }
+
+  function mkEqInput(cls, ph, val) {
+    var i = document.createElement("input");
+    i.className = cls; i.placeholder = ph; i.value = val || "";
+    return i;
+  }
+
+  function renderEquip() {
+    var box = document.getElementById("equip-box");
+    if (!box) return;
+    box.textContent = "";
+    equip.forEach(function (eq, idx) {
+      var row = document.createElement("div"); row.className = "equip-row";
+      var l1 = document.createElement("div"); l1.className = "equip-line";
+      var name = mkEqInput("eq-name", "장비명", eq.name);
+      name.addEventListener("input", function () { eq.name = name.value; saveEquip(); });
+      var qty = mkEqInput("eq-qty", "수량", eq.qty);
+      qty.type = "number"; qty.min = "1"; qty.setAttribute("aria-label", "수량");
+      qty.addEventListener("input", function () { eq.qty = qty.value; saveEquip(); });
+      var del = document.createElement("button");
+      del.type = "button"; del.className = "eq-del"; del.textContent = "✕";
+      del.setAttribute("aria-label", "장비 삭제");
+      del.addEventListener("click", function () {
+        equip.splice(idx, 1); saveEquip(); renderEquip();
+      });
+      l1.appendChild(name); l1.appendChild(qty); l1.appendChild(del);
+
+      var l2 = document.createElement("div"); l2.className = "equip-line";
+      var vendor = mkEqInput("eq-vendor", "업체(공급사)", eq.vendor);
+      vendor.addEventListener("input", function () { eq.vendor = vendor.value; saveEquip(); });
+      var dueLabel = document.createElement("span");
+      dueLabel.className = "eq-label"; dueLabel.textContent = "납기";
+      var due = mkEqInput("eq-due", "", eq.due);
+      due.type = "date"; due.setAttribute("aria-label", "납기 예정일");
+      due.addEventListener("input", function () { eq.due = due.value; saveEquip(); });
+      var status = document.createElement("select");
+      status.className = "eq-status"; status.setAttribute("aria-label", "상태");
+      EQUIP_STATUSES.forEach(function (s) {
+        var o = document.createElement("option"); o.value = s; o.textContent = s;
+        status.appendChild(o);
+      });
+      status.value = eq.status || "검토 중";
+      status.addEventListener("change", function () {
+        eq.status = status.value; saveEquip(); updateEquipHeader();
+      });
+      l2.appendChild(vendor); l2.appendChild(dueLabel); l2.appendChild(due); l2.appendChild(status);
+
+      row.appendChild(l1); row.appendChild(l2);
+      box.appendChild(row);
+    });
+    var add = document.createElement("button");
+    add.type = "button"; add.className = "equip-add"; add.textContent = "+ 장비 추가";
+    add.addEventListener("click", function () {
+      equip.push({ name: "", qty: "", vendor: "", due: "", status: "검토 중" });
+      saveEquip(); renderEquip();
+      var names = box.querySelectorAll(".eq-name");
+      if (names.length) names[names.length - 1].focus();
+    });
+    box.appendChild(add);
+    updateEquipHeader();
+  }
+
+  function equipReportLines() {
+    return equip.map(function (eq) {
+      var extras = [];
+      if (eq.qty) extras.push("수량 " + eq.qty + "대");
+      if (eq.vendor) extras.push("업체 " + eq.vendor);
+      if (eq.due) extras.push("납기 " + eq.due);
+      return "    · " + (eq.name || "(이름 미입력)") + " — " + (eq.status || "검토 중") +
+        (extras.length ? " (" + extras.join(", ") + ")" : "");
+    });
+  }
+
+  (function initEquip() {
+    var li = document.getElementById("item-device");
+    if (!li) return;
+    var chip = document.createElement("span");
+    chip.className = "chip hq"; chip.id = "equip-sum"; chip.style.display = "none";
+    li.querySelector(".item-chips").appendChild(chip);
+    var wrap = document.createElement("div");
+    wrap.className = "equip-wrap";
+    var toggle = document.createElement("button");
+    toggle.type = "button"; toggle.className = "equip-toggle"; toggle.id = "equip-toggle";
+    var box = document.createElement("div");
+    box.className = "equip-box"; box.id = "equip-box"; box.style.display = "none";
+    toggle.addEventListener("click", function () {
+      equipOpen = !equipOpen;
+      box.style.display = equipOpen ? "" : "none";
+      updateEquipHeader();
+    });
+    wrap.appendChild(toggle); wrap.appendChild(box);
+    li.appendChild(wrap);
+    renderEquip();
+  })();
+
   /* ---------- 진행 보고 내려받기 ---------- */
   function buildReport() {
     var now = new Date();
@@ -669,6 +830,9 @@
       sec.items.forEach(function (it) {
         if (state[it.id]) lines.push("- [x] " + it.name + " (완료 " + fmtDate(state[it.id]) + ")");
         else lines.push("- [ ] " + it.name);
+        if (it.id === "device" && equip.length) {
+          equipReportLines().forEach(function (l) { lines.push(l); });
+        }
       });
       lines.push("");
     });
@@ -698,6 +862,7 @@
   });
 })();
 </script>
+
 
 </body>
 </html>
