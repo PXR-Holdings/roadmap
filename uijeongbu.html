@@ -182,6 +182,10 @@
     display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
     font-size: 12px; color: var(--muted);
   }
+  .sync { font-size: 12px; font-weight: 700; margin-top: 8px; min-height: 16px; }
+  .sync.ok { color: var(--accent); }
+  .sync.err { color: var(--danger); }
+  .sync.wait { color: var(--muted); }
 
   /* ---------- 딱지(칩) ---------- */
   .chip {
@@ -352,6 +356,7 @@
         <span class="total-num"><span id="total-pct">0</span>%<small id="total-count"></small></span>
       </div>
       <div class="bar"><i id="total-bar"></i></div>
+      <div id="sync-status" class="sync"></div>
       <div class="legend">
         <span class="chip branch">🏠 지점</span>
         <span class="chip hq">🏢 본사</span>
@@ -380,7 +385,7 @@
 
   var BRANCH_NAME = "의정부점";
   var STORE_KEY = "pixcera-open-uijeongbu";
-  var PW_HASH = "5ffd8cf0aa51a1f41cb532e6a213bf4b0b3ebe6a92d7cf3bceab52d6dd22c2a8";
+  var PW_HASH = "e0f02bb13c5c4a3c07cd168028193e27a40f7c95dbc64ba4d56d0945ea51422d";
 
   /* ---------- 데이터 ---------- */
   var SECTIONS = [
@@ -557,9 +562,10 @@
   function openBoard() {
     document.getElementById("gate").style.display = "none";
     document.getElementById("board").style.display = "block";
+    setTimeout(function () { startSync(); }, 0);
   }
   var unlocked = false;
-  try { unlocked = sessionStorage.getItem("pxr-gate-ok") === "1"; } catch (e) {}
+  try { unlocked = sessionStorage.getItem("pxr-gate-key") === PW_HASH; } catch (e) {}
   if (unlocked) openBoard();
   else document.getElementById("gate-pw").focus();
 
@@ -568,7 +574,7 @@
     var pw = document.getElementById("gate-pw").value.trim();
     sha256hex(pw).then(function (hex) {
       if (hex === PW_HASH) {
-        try { sessionStorage.setItem("pxr-gate-ok", "1"); } catch (e) {}
+        try { sessionStorage.setItem("pxr-gate-key", hex); } catch (e) {}
         openBoard();
       } else {
         document.getElementById("gate-err").textContent = "비밀번호가 맞지 않습니다.";
@@ -683,6 +689,7 @@
     else delete state[id];
     saveState(state);
     refresh();
+    scheduleSync();
   });
 
   refresh();
@@ -731,26 +738,26 @@
       var row = document.createElement("div"); row.className = "equip-row";
       var l1 = document.createElement("div"); l1.className = "equip-line";
       var name = mkEqInput("eq-name", "장비명", eq.name);
-      name.addEventListener("input", function () { eq.name = name.value; saveEquip(); });
+      name.addEventListener("input", function () { eq.name = name.value; saveEquip(); scheduleSync(); });
       var qty = mkEqInput("eq-qty", "수량", eq.qty);
       qty.type = "number"; qty.min = "1"; qty.setAttribute("aria-label", "수량");
-      qty.addEventListener("input", function () { eq.qty = qty.value; saveEquip(); });
+      qty.addEventListener("input", function () { eq.qty = qty.value; saveEquip(); scheduleSync(); });
       var del = document.createElement("button");
       del.type = "button"; del.className = "eq-del"; del.textContent = "✕";
       del.setAttribute("aria-label", "장비 삭제");
       del.addEventListener("click", function () {
-        equip.splice(idx, 1); saveEquip(); renderEquip();
+        equip.splice(idx, 1); saveEquip(); scheduleSync(); renderEquip();
       });
       l1.appendChild(name); l1.appendChild(qty); l1.appendChild(del);
 
       var l2 = document.createElement("div"); l2.className = "equip-line";
       var vendor = mkEqInput("eq-vendor", "업체(공급사)", eq.vendor);
-      vendor.addEventListener("input", function () { eq.vendor = vendor.value; saveEquip(); });
+      vendor.addEventListener("input", function () { eq.vendor = vendor.value; saveEquip(); scheduleSync(); });
       var dueLabel = document.createElement("span");
       dueLabel.className = "eq-label"; dueLabel.textContent = "납기";
       var due = mkEqInput("eq-due", "", eq.due);
       due.type = "date"; due.setAttribute("aria-label", "납기 예정일");
-      due.addEventListener("input", function () { eq.due = due.value; saveEquip(); });
+      due.addEventListener("input", function () { eq.due = due.value; saveEquip(); scheduleSync(); });
       var status = document.createElement("select");
       status.className = "eq-status"; status.setAttribute("aria-label", "상태");
       EQUIP_STATUSES.forEach(function (s) {
@@ -759,7 +766,7 @@
       });
       status.value = eq.status || "검토 중";
       status.addEventListener("change", function () {
-        eq.status = status.value; saveEquip(); updateEquipHeader();
+        eq.status = status.value; saveEquip(); scheduleSync(); updateEquipHeader();
       });
       l2.appendChild(vendor); l2.appendChild(dueLabel); l2.appendChild(due); l2.appendChild(status);
 
@@ -770,7 +777,7 @@
     add.type = "button"; add.className = "equip-add"; add.textContent = "+ 장비 추가";
     add.addEventListener("click", function () {
       equip.push({ name: "", qty: "", vendor: "", due: "", status: "검토 중" });
-      saveEquip(); renderEquip();
+      saveEquip(); scheduleSync(); renderEquip();
       var names = box.querySelectorAll(".eq-name");
       if (names.length) names[names.length - 1].focus();
     });
@@ -810,6 +817,75 @@
     li.appendChild(wrap);
     renderEquip();
   })();
+
+  /* ---------- 공용 장부 동기화 (구글 장부지기) ---------- */
+  var SYNC_URL = "https://script.google.com/macros/s/AKfycbxbLaKOpkvvsA1QksnNubbmvc__C0bXfay82vPK3I4d_9rrf01BbVelPQ1WVauBBzUTYA/exec";
+  var SYNC_BRANCH = "uijeongbu";
+  var DIRTY_KEY = STORE_KEY + "-dirty";
+  var syncTimer = null;
+
+  function syncKey() {
+    try { return sessionStorage.getItem("pxr-gate-key") || ""; } catch (e) { return ""; }
+  }
+  function setSyncStatus(kind, text) {
+    var el = document.getElementById("sync-status");
+    if (el) { el.textContent = text; el.className = "sync " + kind; }
+  }
+  function markDirty() { try { localStorage.setItem(DIRTY_KEY, "1"); } catch (e) {} }
+  function clearDirty() { try { localStorage.removeItem(DIRTY_KEY); } catch (e) {} }
+  function isDirty() { try { return localStorage.getItem(DIRTY_KEY) === "1"; } catch (e) { return false; } }
+
+  function scheduleSync() {
+    markDirty();
+    setSyncStatus("wait", "저장 대기…");
+    if (syncTimer) clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushRemote, 1200);
+  }
+
+  function pushRemote() {
+    if (!syncKey()) return;
+    setSyncStatus("wait", "공용 장부에 저장 중…");
+    fetch(SYNC_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ branch: SYNC_BRANCH, key: syncKey(), state: { checks: state, equip: equip } })
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res && res.ok) { clearDirty(); setSyncStatus("ok", "공용 장부에 저장됨 ✓"); }
+      else { setSyncStatus("err", "저장 실패 — 이 기기에 임시 보관됨"); }
+    }).catch(function () {
+      setSyncStatus("err", "연결 안 됨 — 이 기기에 임시 보관됨");
+    });
+  }
+
+  function startSync() {
+    if (!syncKey()) return;
+    setSyncStatus("wait", "공용 장부 확인 중…");
+    fetch(SYNC_URL + "?branch=" + SYNC_BRANCH + "&key=" + encodeURIComponent(syncKey()))
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || !res.ok) { setSyncStatus("err", "연결 안 됨 — 이 기기 기록으로 표시 중"); return; }
+        var remote = res.state || {};
+        var rChecks = remote.checks || {};
+        var rEquip = remote.equip || [];
+        var hasLocal = Object.keys(state).length || equip.length;
+        var hasRemote = Object.keys(rChecks).length || rEquip.length;
+        if (isDirty() || (hasLocal && !hasRemote)) {
+          Object.keys(rChecks).forEach(function (id) { if (!state[id]) state[id] = rChecks[id]; });
+          if (!equip.length && rEquip.length) equip = rEquip;
+          saveState(state);
+          saveEquip();
+          refresh(); renderEquip();
+          pushRemote();
+        } else {
+          state = rChecks; equip = rEquip;
+          saveState(state);
+          saveEquip();
+          refresh(); renderEquip();
+          setSyncStatus("ok", "공용 장부와 연결됨 ✓");
+        }
+      })
+      .catch(function () { setSyncStatus("err", "연결 안 됨 — 이 기기 기록으로 표시 중"); });
+  }
 
   /* ---------- 진행 보고 내려받기 ---------- */
   function buildReport() {
