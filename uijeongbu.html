@@ -291,7 +291,18 @@
   .eq-price { width: 110px; }
   .eq-cat { width: 120px; }
   .eq-due { width: 140px; }
+  .equip-class-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 13.5px; font-weight: 800; color: var(--ink);
+    margin: 6px 0 8px; padding-bottom: 5px; border-bottom: 1.5px solid var(--accent);
+  }
+  .equip-class-head:first-child { margin-top: 0; }
+  .equip-class-sum {
+    font-size: 12px; color: var(--muted); font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
   .equip-group { margin-bottom: 12px; }
+  .equip-group.sub { margin-left: 12px; }
   .equip-group-head {
     display: flex; justify-content: space-between; align-items: baseline;
     font-size: 12.5px; font-weight: 800; color: var(--accent);
@@ -725,7 +736,8 @@
     return i;
   }
 
-  var EQUIP_CATS = ["색소", "리프팅", "항노화", "문제성 피부", "관리장비"];
+  var MED_CATS = ["색소", "리프팅", "항노화", "문제성 피부"]; /* 의료장비 세부 범주 */
+  var EQUIP_CATS = MED_CATS.concat(["관리장비"]); /* 관리장비는 세부 범주 없음 */
 
   function eqCatOf(eq) { return EQUIP_CATS.indexOf(eq.cat) >= 0 ? eq.cat : ""; }
   function priceNum(v) {
@@ -745,6 +757,16 @@
       var el = g.querySelector(".equip-group-sum");
       if (el) el.textContent = sub ? fmtWon(sub) : "";
     });
+    var medSum = equip.reduce(function (a, e) {
+      return a + (MED_CATS.indexOf(eqCatOf(e)) >= 0 ? priceNum(e.price) : 0);
+    }, 0);
+    var careSum = equip.reduce(function (a, e) {
+      return a + (eqCatOf(e) === "관리장비" ? priceNum(e.price) : 0);
+    }, 0);
+    var medEl = box.querySelector('.equip-class-sum[data-class="med"]');
+    if (medEl) medEl.textContent = medSum ? fmtWon(medSum) : "";
+    var careEl = box.querySelector('.equip-class-sum[data-class="care"]');
+    if (careEl) careEl.textContent = careSum ? fmtWon(careSum) : "";
     var total = equip.reduce(function (a, e) { return a + priceNum(e.price); }, 0);
     var totalEl = box.querySelector(".equip-total");
     if (totalEl) totalEl.textContent = total ? "가격 합계 " + fmtWon(total) : "";
@@ -820,11 +842,20 @@
     var l2 = document.createElement("div"); l2.className = "equip-line";
     var cat = document.createElement("select");
     cat.className = "eq-cat"; cat.setAttribute("aria-label", "범주");
-    [""].concat(EQUIP_CATS).forEach(function (c) {
+    var o0 = document.createElement("option");
+    o0.value = ""; o0.textContent = "범주 없음";
+    cat.appendChild(o0);
+    var og = document.createElement("optgroup");
+    og.label = "의료장비";
+    MED_CATS.forEach(function (c) {
       var o = document.createElement("option");
-      o.value = c; o.textContent = c || "범주 없음";
-      cat.appendChild(o);
+      o.value = c; o.textContent = c;
+      og.appendChild(o);
     });
+    cat.appendChild(og);
+    var oc = document.createElement("option");
+    oc.value = "관리장비"; oc.textContent = "관리장비";
+    cat.appendChild(oc);
     cat.value = eqCatOf(eq);
     cat.addEventListener("change", function () {
       eq.cat = cat.value; saveEquip(); scheduleSync(); renderEquip();
@@ -862,16 +893,11 @@
     return row;
   }
 
-  function renderEquip() {
-    var box = document.getElementById("equip-box");
-    if (!box) return;
-    box.textContent = "";
-    var cats = EQUIP_CATS.slice();
-    if (equip.some(function (e) { return eqCatOf(e) === ""; })) cats.push("");
-    cats.forEach(function (gcat) {
-      var group = document.createElement("div");
-      group.className = "equip-group";
-      group.setAttribute("data-cat", gcat);
+  function buildEquipGroup(gcat, withHead, isSub) {
+    var group = document.createElement("div");
+    group.className = "equip-group" + (isSub ? " sub" : "");
+    group.setAttribute("data-cat", gcat);
+    if (withHead) {
       var head = document.createElement("div");
       head.className = "equip-group-head";
       var label = document.createElement("span");
@@ -880,26 +906,51 @@
       sum.className = "equip-group-sum";
       head.appendChild(label); head.appendChild(sum);
       group.appendChild(head);
-      var rowsEl = document.createElement("div");
-      rowsEl.className = "equip-rows";
-      equip.forEach(function (eq, idx) {
-        if (eqCatOf(eq) === gcat) rowsEl.appendChild(buildEquipRow(eq, idx));
-      });
-      group.appendChild(rowsEl);
-      var add = document.createElement("button");
-      add.type = "button"; add.className = "equip-add"; add.textContent = "+ 장비 추가";
-      add.addEventListener("click", function () {
-        equip.push({ name: "", qty: "", vendor: "", price: "", due: "", status: "검토 중", cat: gcat });
-        saveEquip(); scheduleSync(); renderEquip();
-        var g2 = document.querySelector('.equip-group[data-cat="' + gcat + '"]');
-        if (g2) {
-          var names = g2.querySelectorAll(".eq-name");
-          if (names.length) names[names.length - 1].focus();
-        }
-      });
-      group.appendChild(add);
-      box.appendChild(group);
+    }
+    var rowsEl = document.createElement("div");
+    rowsEl.className = "equip-rows";
+    equip.forEach(function (eq, idx) {
+      if (eqCatOf(eq) === gcat) rowsEl.appendChild(buildEquipRow(eq, idx));
     });
+    group.appendChild(rowsEl);
+    var add = document.createElement("button");
+    add.type = "button"; add.className = "equip-add"; add.textContent = "+ 장비 추가";
+    add.addEventListener("click", function () {
+      equip.push({ name: "", qty: "", vendor: "", price: "", due: "", status: "검토 중", cat: gcat });
+      saveEquip(); scheduleSync(); renderEquip();
+      var g2 = document.querySelector('.equip-group[data-cat="' + gcat + '"]');
+      if (g2) {
+        var names = g2.querySelectorAll(".eq-name");
+        if (names.length) names[names.length - 1].focus();
+      }
+    });
+    group.appendChild(add);
+    return group;
+  }
+
+  function mkEquipClassHead(text, cls) {
+    var head = document.createElement("div");
+    head.className = "equip-class-head";
+    var label = document.createElement("span");
+    label.textContent = text;
+    var sum = document.createElement("span");
+    sum.className = "equip-class-sum";
+    sum.setAttribute("data-class", cls);
+    head.appendChild(label); head.appendChild(sum);
+    return head;
+  }
+
+  function renderEquip() {
+    var box = document.getElementById("equip-box");
+    if (!box) return;
+    box.textContent = "";
+    box.appendChild(mkEquipClassHead("의료장비", "med"));
+    MED_CATS.forEach(function (c) { box.appendChild(buildEquipGroup(c, true, true)); });
+    box.appendChild(mkEquipClassHead("관리장비", "care"));
+    box.appendChild(buildEquipGroup("관리장비", false, false));
+    if (equip.some(function (e) { return eqCatOf(e) === ""; })) {
+      box.appendChild(buildEquipGroup("", true, false));
+    }
     var totalEl = document.createElement("div");
     totalEl.className = "equip-total";
     box.appendChild(totalEl);
