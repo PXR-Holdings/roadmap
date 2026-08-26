@@ -404,6 +404,7 @@
         { id: "reqcheck",who: "joint",  legal: true, name: "의료기관 개설 요건 확인", note: "건물 용도·면적·주차 등 — 관할 보건소·행정사에 사전 문의" },
         { id: "bizreg",  who: "branch", legal: true, name: "사업자등록·의료기관 개설신고 착수", note: "지역 보건소마다 요구 서류가 다름. 뒤의 플레이스 등록·결제 신청의 전제 조건" },
         { id: "interior",who: "joint",  name: "인테리어 설계 확정", note: "본사 표준 도면 + 지점 상황 반영. 시술실 수·동선은 예약 슬롯 계산과 직결" },
+        { id: "serverspot", who: "joint", name: "서버 자리 확정 (도면에 반영)", note: "통신 단자함 근처 + 잠금장치 있는 수납(개인정보 물리 접근통제) + 통풍 확보, 물·먼지 없는 선반 + 콘센트. 손님용/업무용 와이파이 분리 배선 계획 — 설계 때 놓치면 공사 비용 증가" },
         { id: "device",  who: "joint",  name: "의료기기(레이저 등) 발주", note: "납기가 길어 일찍 발주. 본사 표준 장비 목록 기준" },
         { id: "budget",  who: "branch", name: "개원 자금 계획표 작성", note: "개원 후 3개월 운영비까지 포함해서 계획" },
         { id: "vicehire",who: "joint",  ongoing: true, name: "부원장 구인 착수", note: "일찍 시작할수록 좋음. 채용 공고·조건 설계는 본사와 함께, 개원까지 계속 진행" }
@@ -420,7 +421,8 @@
         { id: "waste",     who: "branch", name: "의료폐기물 수거 업체 계약", note: "개설신고에 필요한 경우가 많음" },
         { id: "insurance", who: "branch", name: "의료배상책임보험·화재보험 가입", note: "" },
         { id: "pg",        who: "branch", name: "카드 단말기·결제(PG) 신청", note: "사업자등록 후에만 가능" },
-        { id: "network",   who: "branch", name: "통신·인터넷 회선 신청", note: "검문소(지점 물리서버) 설치의 전제 조건" },
+        { id: "network",   who: "branch", name: "통신·인터넷 회선 신청", note: "기업용 회선(월 3~5만원) — 검문소(지점 물리서버) 설치의 전제. 고정IP·포트포워딩 불필요" },
+        { id: "serverbuy", who: "joint", name: "서버 장비 구매 (미니PC·UPS·공유기)", note: "미니PC 1대(50~100만원, 팬 있는 중급 모델·SSD 넉넉히) + 정전 대비 UPS(20~40만원) + 유무선 공유기·스위치(10~30만원) — 본사 표준 사양 기준" },
         { id: "cctv",      who: "branch", name: "CCTV 설치·개인정보 안내문 계획", note: "안내문은 본사 표준 양식 사용" },
         { id: "youtube",   who: "joint",  name: "원내용 유튜브 촬영", note: "본사와 일정·내용을 조율해 촬영 진행" }
       ],
@@ -435,7 +437,7 @@
         { id: "staffdone", who: "branch", deadline: "D-14", name: "직원 채용 마무리 + 근로계약 체결", note: "개원 필수 인원(코디 최소 커버리지)이 D-14까지 확정되도록 집중 관리" },
         { id: "vicedone",  who: "joint",  deadline: "D-14", name: "부원장 채용 확정", note: "확정 즉시 교육 이어서 진행" },
         { id: "accounts",  who: "hq",     name: "지점 계정 세트 발급", note: "구글 워크스페이스 등 지점용 계정 일괄 발급" },
-        { id: "server",    who: "hq",     name: "지점 물리서버(검문소)·지점 클라우드 설치", note: "서버 배치도 v1 기준" },
+        { id: "server",    who: "hq",     name: "지점 물리서버(검문소)·지점 클라우드 설치", note: "서버 배치도 v1 기준, 서버 방 진행 — 운영체제·픽세라 시스템 설치, 정전 후 자동 재시동 설정, 1층(식별 원본) 암호화 백업 가동(AWS 국내 일 1회, 암호 열쇠는 병원 금고+대표 오프라인 2곳 보관)" },
         { id: "mailbox",   who: "hq",     name: "관제판·우체통 연결 확인", note: "지점 상태 편지(JSON)가 본사에 도착하는지 시험" },
         { id: "schedule",  who: "joint",  name: "직원 시간표 모듈에 지점 직원 등록", note: "주41시간·A/B조·코디 커버리지 규칙 교육 포함" },
         { id: "wiki",      who: "hq",     name: "위키(시술 카드) 지점 오버레이 개설 + 열람 교육", note: "완성된 시술장부가 재료. 안전 칸 잠금부터 교육" },
@@ -466,6 +468,7 @@
       items: [
         { id: "weekly",  who: "joint", name: "주 1회 본사-지점 점검 통화", note: "첫 달만. 관제판 카드를 함께 보며 진행" },
         { id: "settle",  who: "joint", name: "첫 달 결산·초기 KPI 확인", note: "" },
+        { id: "backupdrill", who: "hq", name: "백업 복원 훈련 루틴 시작", note: "월 1회 복원 훈련(첫 회는 본사와 함께) — 미니PC는 5년 교체 주기 기록" },
         { id: "retro",   who: "hq",    name: "개원 준비 회고 — 이 목록 갱신", note: "" }
       ]
     }
