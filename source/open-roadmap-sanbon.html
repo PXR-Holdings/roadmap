@@ -1,20 +1,4 @@
-<!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
-<title>픽세라 분당미금점 개원 로드맵</title>
-<meta property="og:type" content="website">
-<meta property="og:title" content="픽세라 분당미금점 개원 로드맵">
-<meta property="og:description" content="픽세라 지점 개원 준비 진행판입니다. 공유받은 비밀번호로 열어보세요.">
-<meta property="og:image" content="https://roadmap.pixcera.kr/pixcera-og.png">
-<meta property="og:image:width" content="800">
-<meta property="og:image:height" content="400">
-<meta property="og:url" content="https://roadmap.pixcera.kr/bundang-migeum.html">
-<link rel="icon" type="image/png" href="/favicon.png">
-</head>
-<body>
+<title>픽세라 산본점 개원 로드맵</title>
 <style>
   /* 픽세라 브랜드 컬러 가이드: 퍼플 #6551D9 · 라벤더 #DDD5F3 · 화이트 #FFFFFF · 라임 #CFFF3D(소량) · 차콜 #302E35 */
   :root {
@@ -341,7 +325,7 @@
 <div id="gate">
   <form class="gate-card" id="gate-form">
     <div class="pxgrid" id="gate-logo" aria-hidden="true"></div>
-    <h1>픽세라 분당미금점 개원 로드맵</h1>
+    <h1>픽세라 산본점 개원 로드맵</h1>
     <p>공유받은 비밀번호를 입력하세요</p>
     <input type="password" id="gate-pw" inputmode="numeric" autocomplete="off" aria-label="비밀번호" />
     <button type="submit">열기</button>
@@ -360,8 +344,8 @@
   </section>
 
   <header class="board">
-    <div class="eyebrow"><span class="pxgrid inline" id="head-logo" aria-hidden="true"></span> PIXCERA · 개원 준비 진행판 · BR-004</div>
-    <h1 class="branch">분당미금점 개원 로드맵</h1>
+    <div class="eyebrow"><span class="pxgrid inline" id="head-logo" aria-hidden="true"></span> PIXCERA · 개원 준비 진행판 · BR-002</div>
+    <h1 class="branch">산본점 개원 로드맵</h1>
     <p class="subtitle">개원일(D-day)을 기준으로 구간별 준비 항목을 확인하고 체크하세요. 완료한 항목은 날짜가 함께 기록됩니다.</p>
     <div class="total-box">
       <div class="total-row">
@@ -389,8 +373,8 @@
 (function () {
   "use strict";
 
-  var BRANCH_NAME = "분당미금점";
-  var STORE_KEY = "pixcera-open-bundang-migeum";
+  var BRANCH_NAME = "산본점";
+  var STORE_KEY = "pixcera-open-sanbon";
   var PW_HASH = "e0f02bb13c5c4a3c07cd168028193e27a40f7c95dbc64ba4d56d0945ea51422d";
 
   /* ---------- 데이터 ---------- */
@@ -994,7 +978,7 @@
 
   /* ---------- 공용 장부 동기화 (구글 장부지기) ---------- */
   var SYNC_URL = "https://script.google.com/macros/s/AKfycbxbLaKOpkvvsA1QksnNubbmvc__C0bXfay82vPK3I4d_9rrf01BbVelPQ1WVauBBzUTYA/exec";
-  var SYNC_BRANCH = "BR-004"; /* 지점코드 (8/24 확정) — 옛 열쇠 bundang-migeum은 장부지기가 호환 처리 */
+  var SYNC_BRANCH = "BR-002"; /* 지점코드 (8/24 확정) — 옛 열쇠 sanbon은 장부지기가 호환 처리 */
   var DIRTY_KEY = STORE_KEY + "-dirty";
   var syncTimer = null;
 
@@ -1064,6 +1048,3 @@
 })();
 </script>
 
-
-</body>
-</html>
