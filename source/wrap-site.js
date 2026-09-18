@@ -9,7 +9,9 @@ const OUT_DIR = path.join(__dirname, "..");
 const BRANCHES = [
   { key: "sanbon",         out: "sanbon.html",         name: "산본점", code: "BR-002" },
   { key: "uijeongbu",      out: "uijeongbu.html",      name: "의정부점", code: "BR-003" },
-  { key: "bundang-migeum", out: "bundang-migeum.html", name: "분당미금점", code: "BR-004" }
+  { key: "bundang-migeum", out: "bundang-migeum.html", name: "분당미금점", code: "BR-004" },
+  { key: "gimpo",          out: "gimpo.html",          name: "김포점", code: "BR-005" },
+  { key: "gangnam",        out: "gangnam.html",        name: "강남점", code: "BR-006" }
 ];
 
 // 지점별 예외 — [찾을 문자열, 바꿀 문자열] 목록. 원본(산본) 기준의 항목 줄을 통째로 교체한다.
