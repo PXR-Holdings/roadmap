@@ -199,6 +199,9 @@
   .chip.legal  { background: var(--warn-soft);   color: var(--warn); }
   .chip.deadline { background: var(--danger-soft); color: var(--danger); }
   .chip.ongoing  { background: var(--lime); color: var(--lime-ink); }
+  .chip.retiredchip { background: var(--surface2); color: var(--muted); }
+  li.item.retired .item-name { text-decoration: line-through; color: var(--muted); }
+  li.item.retired input[type="checkbox"] { opacity: .45; cursor: not-allowed; }
 
   /* ---------- 구간 ---------- */
   section.period {
@@ -404,7 +407,7 @@
         { id: "reqcheck",who: "joint",  legal: true, name: "의료기관 개설 요건 확인", note: "건물 용도·면적·주차 등 — 관할 보건소·행정사에 사전 문의" },
         { id: "bizreg",  who: "branch", legal: true, name: "사업자등록·의료기관 개설신고 착수", note: "지역 보건소마다 요구 서류가 다름. 뒤의 플레이스 등록·결제 신청의 전제 조건" },
         { id: "interior",who: "joint",  name: "인테리어 설계 확정", note: "본사 표준 도면 + 지점 상황 반영. 시술실 수·동선은 예약 슬롯 계산과 직결" },
-        { id: "serverspot", who: "joint", name: "서버 자리 확정 (도면에 반영)", note: "통신 단자함 근처 + 잠금장치 있는 수납(개인정보 물리 접근통제) + 통풍 확보, 물·먼지 없는 선반 + 콘센트. 손님용/업무용 와이파이 분리 배선 계획 — 설계 때 놓치면 공사 비용 증가" },
+        { id: "serverspot", who: "joint", retired: "9/13 클라우드 결정", name: "서버 자리 확정 (도면에 반영)", note: "지점 서버가 클라우드 가상 서버로 바뀌어(대표 결정 9/13) 원내 서버 자리가 필요 없어짐. 와이파이 분리 배선은 통신·인터넷 회선 항목에서" },
         { id: "device",  who: "joint",  name: "의료기기(레이저 등) 발주", note: "납기가 길어 일찍 발주. 본사 표준 장비 목록 기준" },
         { id: "budget",  who: "branch", name: "개원 자금 계획표 작성", note: "개원 후 3개월 운영비까지 포함해서 계획" },
         { id: "vicehire",who: "joint",  ongoing: true, name: "부원장 구인 착수", note: "일찍 시작할수록 좋음. 채용 공고·조건 설계는 본사와 함께, 개원까지 계속 진행" }
@@ -421,8 +424,8 @@
         { id: "waste",     who: "branch", name: "의료폐기물 수거 업체 계약", note: "개설신고에 필요한 경우가 많음" },
         { id: "insurance", who: "branch", name: "의료배상책임보험·화재보험 가입", note: "" },
         { id: "pg",        who: "branch", name: "카드 단말기·결제(PG) 신청", note: "사업자등록 후에만 가능" },
-        { id: "network",   who: "branch", name: "통신·인터넷 회선 신청", note: "기업용 회선(월 3~5만원) — 검문소(지점 물리서버) 설치의 전제. 고정IP·포트포워딩 불필요" },
-        { id: "serverbuy", who: "joint", name: "서버 장비 구매 (미니PC·UPS·공유기)", note: "미니PC 1대(50~100만원, 팬 있는 중급 모델·SSD 넉넉히) + 정전 대비 UPS(20~40만원) + 유무선 공유기·스위치(10~30만원) — 본사 표준 사양 기준" },
+        { id: "network",   who: "branch", name: "통신·인터넷 회선 신청", note: "기업용 유선 회선(월 3~5만원) 그대로, LTE 백업 필수 아님(대표 결정 9/13 — 안정성은 개원 전 점검 항목으로). 공유기·와이파이(손님/업무 분리) 준비 포함. 고정IP·포트포워딩 불필요" },
+        { id: "serverbuy", who: "joint", retired: "9/13 클라우드 결정", name: "서버 장비 구매 (미니PC·UPS·공유기)", note: "미니PC·UPS 등 서버 하드웨어 구매 없음(클라우드 전환). 공유기 등 원내망 기기는 통신·인터넷 회선 항목에서" },
         { id: "cctv",      who: "branch", name: "CCTV 설치·개인정보 안내문 계획", note: "안내문은 본사 표준 양식 사용" },
         { id: "youtube",   who: "joint",  name: "원내용 유튜브 촬영", note: "본사와 일정·내용을 조율해 촬영 진행" }
       ],
@@ -437,7 +440,11 @@
         { id: "staffdone", who: "branch", deadline: "D-14", name: "직원 채용 마무리 + 근로계약 체결", note: "개원 필수 인원(코디 최소 커버리지)이 D-14까지 확정되도록 집중 관리" },
         { id: "vicedone",  who: "joint",  deadline: "D-14", name: "부원장 채용 확정", note: "확정 즉시 교육 이어서 진행" },
         { id: "accounts",  who: "hq",     name: "지점 계정 세트 발급", note: "구글 워크스페이스 등 지점용 계정 일괄 발급" },
-        { id: "server",    who: "hq",     name: "지점 물리서버(검문소)·지점 클라우드 설치", note: "⚠ 선행 조건: 청라점(본원) 서버 이사 완료 후 진행 (대표 결정 9/3 — 지점마다 진짜 서버로 개원, 구글 웹앱 과도기에 얹지 않음). 서버 배치도 v1 기준, 서버 방 진행 — 운영체제·픽세라 시스템 설치, 정전 후 자동 재시동 설정, 1층(식별 원본) 암호화 백업 가동(AWS 국내 일 1회, 암호 열쇠는 병원 금고+대표 오프라인 2곳 보관)" },
+        { id: "server",    who: "hq",     retired: "9/13 클라우드 결정", name: "지점 물리서버(검문소)·지점 클라우드 설치", note: "병원에 놓는 물리 서버는 없어짐(대표 결정 9/13) — 아래 \"지점 가상 서버 켜기\"로 대체" },
+        { id: "cloudserver", who: "hq", name: "지점 가상 서버 켜기", note: "⚠ 선행 조건: 청라점(본원) 서버 이사 완료 후 (대표 결정 9/3). 본사·서버 방 몫 — 지점 현장에서 할 일 아님. 세부 절차는 서버 방 \"새 지점 세우기\" 문서" },
+        { id: "branchledger", who: "joint", name: "지점장부 등재·지점 고유 자료 입력", note: "직원·공간·장비 대장·사용목록 — 본사 장부 편집기에서 입력" },
+        { id: "bookmarks", who: "joint", name: "태블릿·PC 즐겨찾기 설정", note: "지점 화면 주소를 태블릿·PC에 등록" },
+        { id: "pinissue", who: "hq", name: "직원 PIN 발급", note: "직원 장부 등재 뒤 발급" },
         { id: "mailbox",   who: "hq",     name: "관제판·우체통 연결 확인", note: "지점 상태 편지(JSON)가 본사에 도착하는지 시험" },
         { id: "schedule",  who: "joint",  name: "직원 시간표 모듈에 지점 직원 등록", note: "주41시간·A/B조·코디 커버리지 규칙 교육 포함" },
         { id: "wiki",      who: "hq",     name: "위키(시술 카드) 지점 오버레이 개설 + 열람 교육", note: "완성된 시술장부가 재료. 안전 칸 잠금부터 교육" },
@@ -458,6 +465,7 @@
       id: "p7", dday: "D-7 ~ D-day", title: "리허설",
       items: [
         { id: "rehearsal", who: "joint",  name: "모의 운영 리허설", note: "가짜 고객으로 접수→시술→결제 전 과정을 최소 1회. 문제점 목록 작성" },
+        { id: "netcheck", who: "branch", name: "인터넷 회선 안정성 점검", note: "인터넷 끊김 = 화면 멈춤 — 개원 전 회선 안정 확인 (9/13 결정)" },
         { id: "privacy",   who: "branch", name: "개인정보 처리방침·동의서 비치 확인", note: "본사 표준 양식" },
         { id: "marketing", who: "joint",  legal: true, name: "개원 안내 마케팅", note: "플레이스 소식·사진 채우기 포함. 의료광고 심의 대상 여부 확인 후 집행" },
         { id: "emergency", who: "hq",     name: "비상 연락 체계 확인", note: "장비 고장·시스템 장애 시 연락처 안내문 1장 비치" }
@@ -468,7 +476,7 @@
       items: [
         { id: "weekly",  who: "joint", name: "주 1회 본사-지점 점검 통화", note: "첫 달만. 관제판 카드를 함께 보며 진행" },
         { id: "settle",  who: "joint", name: "첫 달 결산·초기 KPI 확인", note: "" },
-        { id: "backupdrill", who: "hq", name: "백업 복원 훈련 루틴 시작", note: "월 1회 복원 훈련(첫 회는 본사와 함께) — 미니PC는 5년 교체 주기 기록" },
+        { id: "backupdrill", who: "hq", retired: "9/13 클라우드 결정", name: "백업 복원 훈련 루틴 시작", note: "미니PC 전제 항목 — 클라우드 서버 백업·복원 훈련은 본사·서버 방이 운영" },
         { id: "retro",   who: "hq",    name: "개원 준비 회고 — 이 목록 갱신", note: "" }
       ]
     }
@@ -623,17 +631,18 @@
 
     sec.items.forEach(function (item) {
       var li = document.createElement("li");
-      li.className = "item";
+      li.className = "item" + (item.retired ? " retired" : "");
       li.id = "item-" + item.id;
 
       var chips = '<span class="chip ' + WHO[item.who].cls + '">' + WHO[item.who].label + "</span>";
       if (item.legal)    chips += '<span class="chip legal">⚖️ 전문가 확인</span>';
       if (item.deadline) chips += '<span class="chip deadline">⏰ 마감선 ' + item.deadline + "</span>";
       if (item.ongoing)  chips += '<span class="chip ongoing">⟶ 이어지는 항목</span>';
+      if (item.retired)  chips += '<span class="chip retiredchip">폐기 · ' + item.retired + '</span>';
 
       li.innerHTML =
         '<label class="item-label">' +
-          '<input type="checkbox" data-id="' + item.id + '" aria-label="' + item.name + '" />' +
+          '<input type="checkbox" data-id="' + item.id + '" aria-label="' + item.name + '"' + (item.retired ? " disabled" : "") + ' />' +
           '<div class="item-body">' +
             '<div class="item-name">' + item.name + "</div>" +
             '<div class="item-chips">' + chips + "</div>" +
@@ -662,14 +671,14 @@
   function refresh() {
     var total = 0, done = 0;
     SECTIONS.forEach(function (sec) {
-      var secTotal = sec.items.length, secDone = 0;
+      var secTotal = sec.items.filter(function (it) { return !it.retired; }).length, secDone = 0;
       sec.items.forEach(function (item) {
         var ts = state[item.id];
         var li = document.getElementById("item-" + item.id);
         var cb = li.querySelector("input");
         var dateEl = document.getElementById("date-" + item.id);
         if (ts) {
-          secDone++;
+          if (!item.retired) secDone++;
           li.classList.add("done");
           cb.checked = true;
           dateEl.textContent = "완료 · " + fmtDate(ts);
