@@ -186,6 +186,17 @@
   .sync.ok { color: var(--accent); }
   .sync.err { color: var(--danger); }
   .sync.wait { color: var(--muted); }
+  .dday { margin-top: 10px; font-size: 13.5px; font-weight: 700; color: var(--accent); }
+  .dday b.num { font-size: 20px; font-variant-numeric: tabular-nums; margin-left: 2px; }
+  [hidden] { display: none !important; }
+  .opendate-wrap { padding: 0 18px 14px 53px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .opendate-wrap input[type="date"] {
+    font-family: inherit; font-size: 13px; padding: 6px 8px;
+    border: 1px solid var(--line); border-radius: 6px;
+    background: var(--surface); color: var(--ink);
+  }
+  .opendate-wrap input[type="date"]:focus { outline: none; border-color: var(--accent); }
+  .opendate-dday { font-size: 13px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 
   /* ---------- 딱지(칩) ---------- */
   .chip {
@@ -373,6 +384,7 @@
       </div>
       <div class="bar"><i id="total-bar"></i></div>
       <div id="sync-status" class="sync"></div>
+      <div id="dday-banner" class="dday" hidden></div>
       <div class="legend">
         <span class="chip branch">🏠 지점</span>
         <span class="chip hq">🏢 본사</span>
@@ -401,7 +413,7 @@
     {
       id: "p90", dday: "D-90 ~ D-60", title: "터 잡기 — 법적·공간 준비",
       items: [
-        { id: "opendate",who: "joint",  name: "개원일 지정", note: "이 진행판의 모든 구간(D-90 등)이 이 날짜를 기준으로 계산됩니다" },
+        { id: "opendate",who: "joint",  name: "개원일 지정", note: "아래 달력에 예상 개원일을 넣으면 맨 위 진행률 상자에 D-일 계산이 표시됩니다 (모든 기기 공유)" },
         { id: "contract",who: "joint",  name: "본사와 지점 계약", note: "본사 표준 계약서로 체결" },
         { id: "site",    who: "joint",  name: "입지 확정·임대차 계약", note: "본사 입지 기준 체크리스트로 사전 검토 후 계약" },
         { id: "reqcheck",who: "joint",  legal: true, name: "의료기관 개설 요건 확인", note: "건물 용도·면적·주차 등 — 관할 보건소·행정사에 사전 문의" },
@@ -1001,6 +1013,63 @@
     renderEquip();
   })();
 
+  /* ---------- 예상 개원일 (달력 + D-day) ---------- */
+  var OPEN_KEY = STORE_KEY + "-opendate";
+  function loadOpendate() { try { return localStorage.getItem(OPEN_KEY) || ""; } catch (e) { return ""; } }
+  function saveOpendate() { try { localStorage.setItem(OPEN_KEY, opendate); } catch (e) {} }
+  var opendate = loadOpendate();
+
+  function ddayText(dateStr) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr || "");
+    if (!m) return null;
+    var target = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var diff = Math.round((target - today) / 86400000);
+    if (diff > 0) return "D-" + diff;
+    if (diff === 0) return "D-DAY";
+    return "개원 " + (-diff) + "일째";
+  }
+
+  function renderOpendate() {
+    var input = document.getElementById("opendate-input");
+    if (input && input.value !== opendate) input.value = opendate;
+    var badge = document.getElementById("opendate-dday");
+    var banner = document.getElementById("dday-banner");
+    var d = ddayText(opendate);
+    if (d) {
+      if (banner) {
+        banner.hidden = false;
+        banner.innerHTML = '예상 개원일 <b>' + opendate + '</b> · <b class="num">' + d + "</b>";
+      }
+      if (badge) badge.textContent = d;
+    } else {
+      if (banner) banner.hidden = true;
+      if (badge) badge.textContent = "";
+    }
+  }
+
+  (function initOpendate() {
+    var li = document.getElementById("item-opendate");
+    if (!li) return;
+    var wrap = document.createElement("div");
+    wrap.className = "opendate-wrap";
+    var label = document.createElement("span");
+    label.className = "eq-label"; label.textContent = "예상 개원일";
+    var input = document.createElement("input");
+    input.type = "date"; input.id = "opendate-input";
+    input.setAttribute("aria-label", "예상 개원일");
+    input.addEventListener("input", function () {
+      opendate = input.value || "";
+      saveOpendate(); scheduleSync(); renderOpendate();
+    });
+    var badge = document.createElement("span");
+    badge.className = "opendate-dday"; badge.id = "opendate-dday";
+    wrap.appendChild(label); wrap.appendChild(input); wrap.appendChild(badge);
+    li.appendChild(wrap);
+    renderOpendate();
+  })();
+
   /* ---------- 공용 장부 동기화 (구글 장부지기) ---------- */
   var SYNC_URL = "https://script.google.com/macros/s/AKfycbxbLaKOpkvvsA1QksnNubbmvc__C0bXfay82vPK3I4d_9rrf01BbVelPQ1WVauBBzUTYA/exec";
   var SYNC_BRANCH = "BR-002"; /* 지점코드 (8/24 확정) — 옛 열쇠 sanbon은 장부지기가 호환 처리 */
@@ -1031,7 +1100,7 @@
     fetch(SYNC_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ branch: SYNC_BRANCH, key: syncKey(), state: { checks: state, equip: equip } })
+      body: JSON.stringify({ branch: SYNC_BRANCH, key: syncKey(), state: { checks: state, equip: equip, opendate: opendate } })
     }).then(function (r) { return r.json(); }).then(function (res) {
       if (res && res.ok) { clearDirty(); setSyncStatus("ok", "공용 장부에 저장됨 ✓"); }
       else { setSyncStatus("err", "저장 실패 — 이 기기에 임시 보관됨"); }
@@ -1050,20 +1119,24 @@
         var remote = res.state || {};
         var rChecks = remote.checks || {};
         var rEquip = remote.equip || [];
-        var hasLocal = Object.keys(state).length || equip.length;
-        var hasRemote = Object.keys(rChecks).length || rEquip.length;
+        var rOpen = remote.opendate || "";
+        var hasLocal = Object.keys(state).length || equip.length || opendate;
+        var hasRemote = Object.keys(rChecks).length || rEquip.length || rOpen;
         if (isDirty() || (hasLocal && !hasRemote)) {
           Object.keys(rChecks).forEach(function (id) { if (!state[id]) state[id] = rChecks[id]; });
           if (!equip.length && rEquip.length) equip = rEquip;
+          if (!opendate && rOpen) opendate = rOpen;
           saveState(state);
           saveEquip();
-          refresh(); renderEquip();
+          saveOpendate();
+          refresh(); renderEquip(); renderOpendate();
           pushRemote();
         } else {
-          state = rChecks; equip = rEquip;
+          state = rChecks; equip = rEquip; opendate = rOpen;
           saveState(state);
           saveEquip();
-          refresh(); renderEquip();
+          saveOpendate();
+          refresh(); renderEquip(); renderOpendate();
           setSyncStatus("ok", "공용 장부와 연결됨 ✓");
         }
       })
