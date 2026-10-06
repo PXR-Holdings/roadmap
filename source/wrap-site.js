@@ -7,8 +7,8 @@ const path = require("path");
 const DOMAIN = "https://roadmap.pixcera.kr";
 const OUT_DIR = path.join(__dirname, "..");
 const BRANCHES = [
-  { key: "sanbon",         out: "sanbon.html",         name: "산본점", code: "BR-002" },
-  { key: "uijeongbu",      out: "uijeongbu.html",      name: "의정부점", code: "BR-003" },
+  { key: "sanbon",         out: "sanbon.html",         name: "산본점", code: "BR-003" },
+  { key: "uijeongbu",      out: "uijeongbu.html",      name: "의정부점", code: "BR-007" },
   { key: "bundang-migeum", out: "bundang-migeum.html", name: "분당미금점", code: "BR-004" },
   { key: "gimpo",          out: "gimpo.html",          name: "김포점", code: "BR-005" },
   { key: "gangnam",        out: "gangnam.html",        name: "강남점", code: "BR-006" }
