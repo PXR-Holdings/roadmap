@@ -436,7 +436,7 @@
         { id: "waste",     who: "branch", name: "의료폐기물 수거 업체 계약", note: "개설신고에 필요한 경우가 많음" },
         { id: "insurance", who: "branch", name: "의료배상책임보험·화재보험 가입", note: "" },
         { id: "pg",        who: "branch", name: "카드 단말기·결제(PG) 신청", note: "사업자등록 후에만 가능" },
-        { id: "network",   who: "branch", name: "통신·인터넷 회선 신청", note: "기업용 유선 회선(월 3~5만원) 그대로, LTE 백업 필수 아님(대표 결정 9/13 — 안정성은 개원 전 점검 항목으로). 공유기·와이파이(손님/업무 분리) 준비 포함. 고정IP·포트포워딩 불필요" },
+        { id: "network",   who: "branch", name: "통신·인터넷 회선 신청", note: "기업용 유선 회선(월 3~5만원) 그대로, LTE 백업 필수 아님(대표 결정 9/13 — 안정성은 개원 전 점검 항목으로). 공유기·와이파이(고객/업무 분리) 준비 포함. 고정IP·포트포워딩 불필요" },
         { id: "serverbuy", who: "joint", retired: "9/13 클라우드 결정", name: "서버 장비 구매 (미니PC·UPS·공유기)", note: "미니PC·UPS 등 서버 하드웨어 구매 없음(클라우드 전환). 공유기 등 원내망 기기는 통신·인터넷 회선 항목에서" },
         { id: "cctv",      who: "branch", name: "CCTV 설치·개인정보 안내문 계획", note: "안내문은 본사 표준 양식 사용" },
         { id: "youtube",   who: "joint",  name: "원내용 유튜브 촬영", note: "본사와 일정·내용을 조율해 촬영 진행" }
@@ -1075,6 +1075,9 @@
   var SYNC_BRANCH = "BR-006"; /* 지점코드 (8/24 확정) — 옛 열쇠 gangnam은 장부지기가 호환 처리 */
   var DIRTY_KEY = STORE_KEY + "-dirty";
   var syncTimer = null;
+  /* 포털판(개원 준비 모듈)이 적는 덧칸(checkedBy = 체크한 사람 이름 등)을 공개판 저장이 지우지 않게 —
+     내려받을 때 낯선 칸을 들고 있다가 올릴 때 그대로 함께 보낸다 (10/22) */
+  var syncExtra = {};
 
   function syncKey() {
     try { return sessionStorage.getItem("pxr-gate-key") || ""; } catch (e) { return ""; }
@@ -1100,7 +1103,7 @@
     fetch(SYNC_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ branch: SYNC_BRANCH, key: syncKey(), state: { checks: state, equip: equip, opendate: opendate } })
+      body: JSON.stringify({ branch: SYNC_BRANCH, key: syncKey(), state: Object.assign({}, syncExtra, { checks: state, equip: equip, opendate: opendate }) })
     }).then(function (r) { return r.json(); }).then(function (res) {
       if (res && res.ok) { clearDirty(); setSyncStatus("ok", "공용 장부에 저장됨 ✓"); }
       else { setSyncStatus("err", "저장 실패 — 이 기기에 임시 보관됨"); }
@@ -1117,6 +1120,10 @@
       .then(function (res) {
         if (!res || !res.ok) { setSyncStatus("err", "연결 안 됨 — 이 기기 기록으로 표시 중"); return; }
         var remote = res.state || {};
+        syncExtra = {};
+        Object.keys(remote).forEach(function (k) {
+          if (["checks", "equip", "opendate", "savedAt", "branchCode"].indexOf(k) < 0) syncExtra[k] = remote[k];
+        });
         var rChecks = remote.checks || {};
         var rEquip = remote.equip || [];
         var rOpen = remote.opendate || "";
