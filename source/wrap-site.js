@@ -99,3 +99,15 @@ ${links}
 `;
 fs.writeFileSync(path.join(OUT_DIR, "index.html"), index);
 console.log("생성: index.html");
+
+// pages.json — 포털 「지점 바로가기」가 읽는 지점코드 → 진행판 주소 표 (서버 방 물음 ③ (나), 2026-10-22)
+//   지점장부 영문이름과 파일 이름이 다를 수 있어(분당미금 「BUNDANG MIGEUM」 vs bundang-migeum.html) 규칙이 아니라 표로 준다.
+//   새 지점 페이지를 더하면 이 표도 같이 다시 생성된다 — 손으로 고치지 않는다.
+const pages = {
+  형식버전: "roadmap-pages/0.1",
+  갱신: new Date().toISOString().slice(0, 10),
+  대문: DOMAIN + "/",
+  지점: Object.fromEntries(BRANCHES.filter(b => b.code).map(b => [b.code, DOMAIN + "/" + b.out])),
+};
+fs.writeFileSync(path.join(OUT_DIR, "pages.json"), JSON.stringify(pages, null, 2) + "\n");
+console.log("생성: pages.json (" + Object.keys(pages.지점).length + "지점)");
