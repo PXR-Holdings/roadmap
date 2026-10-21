@@ -12,7 +12,7 @@ const BRANCHES = [
   { key: "bundang-migeum", out: "bundang-migeum.html", name: "분당미금점", code: "BR-004" },
   { key: "gimpo",          out: "gimpo.html",          name: "김포점", code: "BR-005" },
   { key: "gangnam",        out: "gangnam.html",        name: "강남점", code: "BR-006" },
-  { key: "balsan",         out: "balsan.html",         name: "발산점", code: "" } // 지점코드 등재 전 (장부 방 등재 대기, 총괄 청함 10/22) — 등재되면 코드 넣고 발산 예외 걷어내기
+  { key: "balsan",         out: "balsan.html",         name: "발산점", code: "BR-008" } // 10/22 장부 등재(9c35bcb3b)
 ];
 
 // 지점별 예외 — [찾을 문자열, 바꿀 문자열] 목록. 원본(산본) 기준의 항목 줄을 통째로 교체한다.
@@ -22,31 +22,6 @@ const OVERRIDES = {
       `        { id: "site",    who: "joint",  name: "입지 확정·임대차 계약", note: "본사 입지 기준 체크리스트로 사전 검토 후 계약" },`,
       `        { id: "transfer",who: "joint",  legal: true, name: "권리양도계약 (전 피부과와)", note: "기존 피부과 자리 양도 — 양도 범위(장비·인테리어·직원 승계 여부)를 계약서에 명시" },
         { id: "lease",   who: "joint",  legal: true, name: "임대차 계약 (임대인과)", note: "권리양도와 별개로 건물주(임대인)와 직접 체결" },`
-    ]
-  ],
-  // 발산점 — 지점코드 등재 전: 머리띠에서 코드 자리 제거 + 공용 장부 동기화 대신 「등재 전」 안내 (코드 확정 뒤 이 예외를 지우고 code 만 넣으면 됨)
-  balsan: [
-    [
-      ` PIXCERA · 개원 준비 진행판 · BR-002</div>`,
-      ` PIXCERA · 개원 준비 진행판</div>`
-    ],
-    [
-      `  var SYNC_BRANCH = "BR-002"; /* 지점코드 (8/24 확정) — 옛 열쇠 sanbon은 장부지기가 호환 처리 */`,
-      `  var SYNC_BRANCH = ""; /* 지점코드 등재 전 — 장부 방 등재(총괄 청함 10/22) 뒤 코드 넣고 재생성 */`
-    ],
-    [
-      `  function scheduleSync() {
-    markDirty();`,
-      `  function scheduleSync() {
-    markDirty();
-    if (!SYNC_BRANCH) { setSyncStatus("wait", "지점코드 등재 전 — 체크는 이 기기에만 보관됩니다"); return; }`
-    ],
-    [
-      `  function startSync() {
-    if (!syncKey()) return;`,
-      `  function startSync() {
-    if (!SYNC_BRANCH) { setSyncStatus("wait", "지점코드 등재 전 — 체크는 이 기기에만 보관됩니다"); return; }
-    if (!syncKey()) return;`
     ]
   ]
 };

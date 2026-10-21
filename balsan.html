@@ -374,7 +374,7 @@
   </section>
 
   <header class="board">
-    <div class="eyebrow"><span class="pxgrid inline" id="head-logo" aria-hidden="true"></span> PIXCERA · 개원 준비 진행판</div>
+    <div class="eyebrow"><span class="pxgrid inline" id="head-logo" aria-hidden="true"></span> PIXCERA · 개원 준비 진행판 · BR-008</div>
     <h1 class="branch">발산점 개원 로드맵</h1>
     <p class="subtitle">개원일(D-day)을 기준으로 구간별 준비 항목을 확인하고 체크하세요. 완료한 항목은 날짜가 함께 기록됩니다.</p>
     <div class="total-box">
@@ -1072,7 +1072,7 @@
 
   /* ---------- 공용 장부 동기화 (구글 장부지기) ---------- */
   var SYNC_URL = "https://ps8sq0dj15.execute-api.ap-northeast-2.amazonaws.com";
-  var SYNC_BRANCH = ""; /* 지점코드 등재 전 — 장부 방 등재(총괄 청함 10/22) 뒤 코드 넣고 재생성 */
+  var SYNC_BRANCH = "BR-008"; /* 지점코드 (8/24 확정) — 옛 열쇠 balsan은 장부지기가 호환 처리 */
   var DIRTY_KEY = STORE_KEY + "-dirty";
   var syncTimer = null;
 
@@ -1089,7 +1089,6 @@
 
   function scheduleSync() {
     markDirty();
-    if (!SYNC_BRANCH) { setSyncStatus("wait", "지점코드 등재 전 — 체크는 이 기기에만 보관됩니다"); return; }
     setSyncStatus("wait", "저장 대기…");
     if (syncTimer) clearTimeout(syncTimer);
     syncTimer = setTimeout(pushRemote, 1200);
@@ -1111,7 +1110,6 @@
   }
 
   function startSync() {
-    if (!SYNC_BRANCH) { setSyncStatus("wait", "지점코드 등재 전 — 체크는 이 기기에만 보관됩니다"); return; }
     if (!syncKey()) return;
     setSyncStatus("wait", "공용 장부 확인 중…");
     fetch(SYNC_URL + "?branch=" + SYNC_BRANCH + "&key=" + encodeURIComponent(syncKey()))
