@@ -1,13 +1,13 @@
 {
   "형식버전": "roadmap-pages/0.1",
-  "갱신": "2026-10-21",
+  "갱신": "2026-10-23",
   "대문": "https://roadmap.pixcera.kr/",
   "지점": {
-    "BR-003": "https://roadmap.pixcera.kr/sanbon.html",
-    "BR-007": "https://roadmap.pixcera.kr/uijeongbu.html",
-    "BR-004": "https://roadmap.pixcera.kr/bundang-migeum.html",
-    "BR-005": "https://roadmap.pixcera.kr/gimpo.html",
-    "BR-006": "https://roadmap.pixcera.kr/gangnam.html",
-    "BR-008": "https://roadmap.pixcera.kr/balsan.html"
+    "BR-003": "https://roadmap.pixcera.kr/?branch=BR-003&name=%EC%82%B0%EB%B3%B8%EC%A0%90",
+    "BR-007": "https://roadmap.pixcera.kr/?branch=BR-007&name=%EC%9D%98%EC%A0%95%EB%B6%80%EC%A0%90",
+    "BR-004": "https://roadmap.pixcera.kr/?branch=BR-004&name=%EB%B6%84%EB%8B%B9%EB%AF%B8%EA%B8%88%EC%A0%90",
+    "BR-005": "https://roadmap.pixcera.kr/?branch=BR-005&name=%EA%B9%80%ED%8F%AC%EC%A0%90",
+    "BR-006": "https://roadmap.pixcera.kr/?branch=BR-006&name=%EA%B0%95%EB%82%A8%EC%A0%90",
+    "BR-008": "https://roadmap.pixcera.kr/?branch=BR-008&name=%EB%B0%9C%EC%82%B0%EC%A0%90"
   }
 }

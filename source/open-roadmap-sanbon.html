@@ -336,10 +336,12 @@
   #board { display: none; }
 </style>
 
+<div id="noquery" hidden style="max-width:420px;margin:120px auto;padding:0 20px;text-align:center;font-size:15px;color:var(--muted)">지점 코드가 없습니다 — 공유받은 지점 주소로 들어와 주세요.</div>
+
 <div id="gate">
-  <form class="gate-card" id="gate-form">
+  <form class="gate-card" id="gate-form" onsubmit="return false">
     <div class="pxgrid" id="gate-logo" aria-hidden="true"></div>
-    <h1>픽세라 산본점 개원 로드맵</h1>
+    <h1 id="gate-title">픽세라 개원 로드맵</h1>
     <p>공유받은 비밀번호를 입력하세요</p>
     <input type="password" id="gate-pw" inputmode="numeric" autocomplete="off" aria-label="비밀번호" />
     <button type="submit">열기</button>
@@ -358,8 +360,8 @@
   </section>
 
   <header class="board">
-    <div class="eyebrow"><span class="pxgrid inline" id="head-logo" aria-hidden="true"></span> PIXCERA · 개원 준비 진행판 · BR-002</div>
-    <h1 class="branch">산본점 개원 로드맵</h1>
+    <div class="eyebrow"><span class="pxgrid inline" id="head-logo" aria-hidden="true"></span> PIXCERA · 개원 준비 진행판 · <span id="brcode"></span></div>
+    <h1 class="branch" id="board-title">개원 로드맵</h1>
     <p class="subtitle">개원일(D-day)을 기준으로 구간별 준비 항목을 확인하고 체크하세요. 완료한 항목은 날짜가 함께 기록됩니다.</p>
     <div class="total-box">
       <div class="total-row">
@@ -368,6 +370,8 @@
       </div>
       <div class="bar"><i id="total-bar"></i></div>
       <div id="sync-status" class="sync"></div>
+      <!-- 보관 띠 자리(개원 완료 「막고 보관」) — 창구 계약 close/closed/reopen 등재(서버 방) 뒤 끼움 -->
+      <div id="closed-banner" class="dday" hidden></div>
       <div id="dday-banner" class="dday" hidden></div>
       <div class="legend">
         <span class="chip branch">🏠 지점</span>
@@ -388,9 +392,31 @@
 (function () {
   "use strict";
 
-  var BRANCH_NAME = "산본점";
-  var STORE_KEY = "pixcera-open-sanbon";
+  /* ---------- 한 페이지(10/23 대표 「진행해」) — 지점은 주소 쿼리에서 ---------- */
+  var qs = new URLSearchParams(location.search);
+  var BRANCH_CODE = String(qs.get("branch") || "").trim().toUpperCase();
+  var BRANCH_NAME = String(qs.get("name") || "").trim().slice(0, 30);
+  if (!/^BR-\d{3}$/.test(BRANCH_CODE)) {
+    document.getElementById("gate").hidden = true;
+    document.getElementById("noquery").hidden = false;
+    return;
+  }
+  var 제목 = "픽세라 " + (BRANCH_NAME ? BRANCH_NAME + " " : "") + "개원 로드맵";
+  document.title = 제목;
+  document.getElementById("gate-title").textContent = 제목;
+  document.getElementById("board-title").textContent = (BRANCH_NAME ? BRANCH_NAME + " " : "") + "개원 로드맵";
+  document.getElementById("brcode").textContent = BRANCH_CODE;
+
+  var STORE_KEY = "pixcera-open-" + BRANCH_CODE;   // 옛 지점별 페이지의 열쇠와 다름 — 기기 임시 보관만 쓰는 값, 정본은 공용 장부
   var PW_HASH = "e0f02bb13c5c4a3c07cd168028193e27a40f7c95dbc64ba4d56d0945ea51422d";
+
+  /* 지점별 항목 예외 — 코드가 아니라 자료 표(/항목예외.json)에서. 못 읽으면 기본 목록 그대로. */
+  fetch("/항목예외.json", { cache: "no-store" })
+    .then(function (r) { return r.json(); })
+    .catch(function () { return null; })
+    .then(function (ovj) { init((ovj && ovj.예외 && ovj.예외[BRANCH_CODE]) || null); });
+
+  function init(OVER) {
 
   /* ---------- 데이터 ---------- */
   var SECTIONS = [
@@ -477,6 +503,19 @@
       ]
     }
   ];
+
+  if (OVER) {
+    SECTIONS = SECTIONS.map(function (sec) {
+      var o = OVER[sec.id];
+      if (!o) return sec;
+      var items = [];
+      sec.items.forEach(function (it) {
+        if (o[it.id]) o[it.id].forEach(function (x) { items.push(x); });
+        else items.push(it);
+      });
+      return { id: sec.id, dday: sec.dday, title: sec.title, items: items, chain: sec.chain };
+    });
+  }
 
   var WHO = {
     branch: { cls: "branch", label: "🏠 지점" },
@@ -1056,7 +1095,10 @@
 
   /* ---------- 공용 장부 동기화 (구글 장부지기) ---------- */
   var SYNC_URL = "https://ps8sq0dj15.execute-api.ap-northeast-2.amazonaws.com";
-  var SYNC_BRANCH = "BR-002"; /* 지점코드 (8/24 확정) — 옛 열쇠 sanbon은 장부지기가 호환 처리 */
+  var SYNC_BRANCH = BRANCH_CODE; /* 주소 쿼리에서 (한 페이지화 10/23) */
+  /* 보관(개원 완료 「막고 보관」) 자리 — 창구 계약 close/closed/reopen 등재(서버 방) 뒤 끼움:
+     GET 답 state.closedAt 있으면 #closed-banner 띠 + 체크·장비·개원일 입력 잠금(읽기만),
+     저장 답 {ok:false,error:"closed"} 도 같은 띠로. */
   var DIRTY_KEY = STORE_KEY + "-dirty";
   var syncTimer = null;
   /* 포털판(개원 준비 모듈)이 적는 덧칸(checkedBy = 체크한 사람 이름 등)을 공개판 저장이 지우지 않게 —
@@ -1133,6 +1175,8 @@
       })
       .catch(function () { setSyncStatus("err", "연결 안 됨 — 이 기기 기록으로 표시 중"); });
   }
+
+  }   /* init 끝 (한 페이지화 10/23) */
 
 })();
 </script>
