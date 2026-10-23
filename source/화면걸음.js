@@ -11,6 +11,9 @@ const { spawn } = require("child_process");
 const 인자 = process.argv.slice(2);
 const 값 = (이름, 기본) => { const i = 인자.indexOf(이름); return i >= 0 && 인자[i + 1] ? 인자[i + 1] : 기본; };
 const 주소 = 값("--주소", "http://127.0.0.1:8377");
+// --가짜창구: 공용 장부 창구 호출을 CDP 로 가로채 가짜 답을 준다(격리 — 보관 열림/닫힘 걸음용 · 운영 걸음에선 쓰지 않는다)
+const 가짜창구켬 = 인자.includes("--가짜창구");
+const 가짜 = { state: { checks: {}, equip: [], opendate: "" }, 닫힘저장: false };
 const 캡처폴더 = 값("--캡처폴더", fs.mkdtempSync(path.join(os.tmpdir(), "진행판화면-")));
 fs.mkdirSync(캡처폴더, { recursive: true });
 const 디버그포트 = 19233;
@@ -27,10 +30,16 @@ async function 붙기() {
   const 목록 = await new Promise((res, rej) => http.get(`http://127.0.0.1:${디버그포트}/json/version`, r => { let s = ""; r.on("data", d => s += d); r.on("end", () => { try { res(JSON.parse(s)); } catch (e) { rej(e); } }); }).on("error", rej));
   ws = new WebSocket(목록.webSocketDebuggerUrl);
   await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
-  ws.onmessage = ev => { const m = JSON.parse(ev.data); if (m.id && 기다림.has(m.id)) { const w = 기다림.get(m.id); 기다림.delete(m.id); m.error ? w.rej(new Error(m.error.message)) : w.res(m.result); } else if (m.method) 사건들.push(m); };
+  ws.onmessage = ev => {
+    const m = JSON.parse(ev.data);
+    if (m.id && 기다림.has(m.id)) { const w = 기다림.get(m.id); 기다림.delete(m.id); m.error ? w.rej(new Error(m.error.message)) : w.res(m.result); }
+    else if (m.method === "Fetch.requestPaused" && 가짜창구켬) 가짜답(m.params, m.sessionId).catch(() => {});
+    else if (m.method) 사건들.push(m);
+  };
   const { targetId } = await 보내기("Target.createTarget", { url: "about:blank" });
   const { sessionId } = await 보내기("Target.attachToTarget", { targetId, flatten: true });
   await 보내기("Page.enable", {}, sessionId); await 보내기("Runtime.enable", {}, sessionId); await 보내기("Log.enable", {}, sessionId);
+  if (가짜창구켬) await 보내기("Fetch.enable", { patterns: [{ urlPattern: "*ps8sq0dj15*" }] }, sessionId);
   await 보내기("Emulation.setDeviceMetricsOverride", { width: 1200, height: 900, deviceScaleFactor: 1, mobile: false }, sessionId);
   return sessionId;
 }
@@ -42,6 +51,20 @@ function 콘솔모으기() {
     if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") { const t = m.params.args.map(a => a.value || a.description || "").join(" "); if (!거를오류.test(t)) 콘솔오류.push("console.error: " + t.slice(0, 200)); }
     if (m.method === "Log.entryAdded" && m.params.entry.level === "error" && !거를오류.test(m.params.entry.text || "")) 콘솔오류.push("log: " + (m.params.entry.text || "").slice(0, 200));
   }
+}
+// 가짜 창구 답 — 창구 규약(닫기·보관 10/23)과 같은 꼴: GET {ok,state} · 닫힌 지점 저장 {ok:false,error:"closed",closedAt}
+async function 가짜답(p, sid) {
+  const 몸머리 = [{ name: "Content-Type", value: "application/json" }, { name: "Access-Control-Allow-Origin", value: "*" }];
+  let 답;
+  if (p.request.method === "POST") {
+    if (가짜.닫힘저장 || 가짜.state.closedAt) 답 = { ok: false, error: "closed", closedAt: 가짜.state.closedAt || new Date().toISOString() };
+    else {
+      try { const j = JSON.parse(p.request.postData || "{}"); Object.assign(가짜.state, j.state || {}); } catch {}
+      가짜.state.savedAt = new Date().toISOString();
+      답 = { ok: true, state: 가짜.state };
+    }
+  } else 답 = { ok: true, state: 가짜.state };
+  await 보내기("Fetch.fulfillRequest", { requestId: p.requestId, responseCode: 200, responseHeaders: 몸머리, body: Buffer.from(JSON.stringify(답)).toString("base64") }, sid);
 }
 let S;
 async function 가기(길, 신호글) {
@@ -99,6 +122,44 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
     // ⑤ 틀린 코드 꼴
     await 가기("/?branch=abc&name=x", /지점 코드가 없습니다/);
     검(/지점 코드가 없습니다/.test(await 글자()), "코드 꼴 아니면 같은 안내 한 줄");
+
+    // ⑥~⑧ 보관(막고 보관) — 가짜 창구에서만(창구 규약 닫기·보관 10/23)
+    if (가짜창구켬) {
+      // ⑥ 열린 지점 — 체크 저장이 됨
+      await 가기("/?branch=BR-003&name=" + encodeURIComponent("가짜지점"), /개원 로드맵/);
+      await 자기(1000); 콘솔모으기();
+      검(/공용 장부와 연결됨 ✓/.test(await 평가(`document.getElementById("sync-status").textContent`)), "열린 지점 — 연결됨(가짜 창구)");
+      await 평가(`document.querySelector('#item-contract input').click()`);
+      for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.getElementById("sync-status").textContent`)); i++) await 자기(300);
+      검(/공용 장부에 저장됨 ✓/.test(await 평가(`document.getElementById("sync-status").textContent`)), "열린 지점 — 체크 → 저장됨 ✓");
+      await 캡처("04-열림저장");
+      // ⑦ 닫힌 지점 — 띠 + 입력 잠금
+      가짜.state.closedAt = "2026-10-23T12:00:00.000Z";
+      await 가기("/?branch=BR-003&name=" + encodeURIComponent("가짜지점"), /개원 로드맵/);
+      await 자기(1200); 콘솔모으기();
+      const 띠 = await 평가(`(() => { const el = document.getElementById("closed-banner"); return el && !el.hidden ? el.textContent : ""; })()`);
+      검(/개원 완료 · 보관본/.test(띠) && /10\/23/.test(띠), "닫힌 지점 — 보관 띠(닫힌 날)", 띠);
+      검(await 평가(`document.querySelector('#item-contract input').disabled === true`), "닫힌 지점 — 체크 칸 잠김");
+      검(await 평가(`document.getElementById("opendate-input").disabled === true`), "닫힌 지점 — 개원일 달력 잠김");
+      검(await 평가(`[...document.querySelectorAll(".equip-add")].every(b => getComputedStyle(b).display === "none")`), "닫힌 지점 — 장비 추가 단추 숨김");
+      const 전진행 = await 평가(`document.getElementById("total-count").textContent`);
+      await 평가(`(() => { const l = document.querySelector('#item-bizreg .item-label'); l && l.click(); })()`);
+      await 자기(500);
+      검((await 평가(`document.getElementById("total-count").textContent`)) === 전진행, "닫힌 지점 — 눌러도 진행 수 그대로(읽기만)", 전진행);
+      await 캡처("05-보관");
+      // ⑧ 저장 시도에 closed 답 — 같은 띠로
+      delete 가짜.state.closedAt;
+      await 가기("/?branch=BR-003&name=" + encodeURIComponent("가짜지점"), /개원 로드맵/);
+      await 자기(1000);
+      가짜.닫힘저장 = true;   // 다음 저장부터 창구가 closed 로 거절(그새 닫힌 꼴)
+      await 평가(`document.querySelector('#item-waste input').click()`);
+      for (let i = 0; i < 20 && !/보관된 진행판/.test(await 평가(`document.getElementById("sync-status").textContent`)); i++) await 자기(300);
+      검(/보관된 진행판입니다 — 저장되지 않았습니다/.test(await 평가(`document.getElementById("sync-status").textContent`)), "그새 닫힘 — 저장 답 closed → 같은 띠·안내");
+      검(await 평가(`!document.getElementById("closed-banner").hidden`), "그새 닫힘 — 보관 띠 섬");
+      검(await 평가(`document.querySelector('#item-contract input').disabled === true`), "그새 닫힘 — 입력 잠김");
+      await 캡처("06-닫힘저장답");
+      가짜.닫힘저장 = false;
+    }
 
     콘솔모으기();
     검(콘솔오류.length === 0, "콘솔 오류·예외 0(창구 CORS 는 격리 정상이라 거름)", 콘솔오류.join(" | "));

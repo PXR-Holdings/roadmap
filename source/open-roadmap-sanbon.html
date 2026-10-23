@@ -172,6 +172,10 @@
   .sync.wait { color: var(--muted); }
   .dday { margin-top: 10px; font-size: 13.5px; font-weight: 700; color: var(--accent); }
   .dday b.num { font-size: 20px; font-variant-numeric: tabular-nums; margin-left: 2px; }
+  /* 보관(개원 완료) 띠 — 창구 규약 「닫기·보관」(10/23): state.closedAt 있으면 띠 + 입력 잠금 */
+  #closed-banner { margin-top: 10px; font-size: 13.5px; font-weight: 800; color: var(--accent);
+    background: var(--accent-soft); border-radius: 8px; padding: 8px 12px; }
+  body.archived .equip-add, body.archived .eq-del, body.archived .eq-handle { display: none; }
   [hidden] { display: none !important; }
   .opendate-wrap { padding: 0 18px 14px 53px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .opendate-wrap input[type="date"] {
@@ -1096,9 +1100,31 @@
   /* ---------- 공용 장부 동기화 (구글 장부지기) ---------- */
   var SYNC_URL = "https://ps8sq0dj15.execute-api.ap-northeast-2.amazonaws.com";
   var SYNC_BRANCH = BRANCH_CODE; /* 주소 쿼리에서 (한 페이지화 10/23) */
-  /* 보관(개원 완료 「막고 보관」) 자리 — 창구 계약 close/closed/reopen 등재(서버 방) 뒤 끼움:
-     GET 답 state.closedAt 있으면 #closed-banner 띠 + 체크·장비·개원일 입력 잠금(읽기만),
-     저장 답 {ok:false,error:"closed"} 도 같은 띠로. */
+
+  /* ---------- 보관(개원 완료 「막고 보관」 · 창구 규약 10/23 a03870b99) ----------
+     GET 답 state.closedAt 있으면 띠 + 입력 잠금(읽기만 — 장비 서랍 열어 보기는 됨),
+     닫힌 지점 저장 답 {ok:false,error:"closed",closedAt} 도 같은 띠. 되돌리기(reopen)는 장부 쪽 일. */
+  var closedAt = null;
+  function fmtMD(iso) { var d = new Date(iso); return (d.getMonth() + 1) + "/" + d.getDate(); }
+  function 잠그기() {
+    var 잠금 = !!closedAt;
+    Array.prototype.forEach.call(document.querySelectorAll("#sections input, #sections select"), function (el) {
+      var li = el.closest ? el.closest("li.item") : null;
+      if (li && li.classList.contains("retired")) return;   // 폐기 항목은 늘 잠김 — 건드리지 않는다
+      el.disabled = 잠금;
+    });
+  }
+  function 보관그리기() {
+    var el = document.getElementById("closed-banner");
+    if (closedAt) {
+      if (el) { el.hidden = false; el.textContent = "✅ 개원 완료 · 보관본 — 더 고칠 수 없습니다 (닫힌 날 " + fmtMD(closedAt) + ")"; }
+      document.body.classList.add("archived");
+    } else {
+      if (el) el.hidden = true;
+      document.body.classList.remove("archived");
+    }
+    잠그기();
+  }
   var DIRTY_KEY = STORE_KEY + "-dirty";
   var syncTimer = null;
   /* 포털판(개원 준비 모듈)이 적는 덧칸(checkedBy = 체크한 사람 이름 등)을 공개판 저장이 지우지 않게 —
@@ -1117,6 +1143,7 @@
   function isDirty() { try { return localStorage.getItem(DIRTY_KEY) === "1"; } catch (e) { return false; } }
 
   function scheduleSync() {
+    if (closedAt) { 보관그리기(); return; }   // 보관본 — 바뀐 것을 올리지 않는다
     markDirty();
     setSyncStatus("wait", "저장 대기…");
     if (syncTimer) clearTimeout(syncTimer);
@@ -1132,6 +1159,11 @@
       body: JSON.stringify({ branch: SYNC_BRANCH, key: syncKey(), state: Object.assign({}, syncExtra, { checks: state, equip: equip, opendate: opendate }) })
     }).then(function (r) { return r.json(); }).then(function (res) {
       if (res && res.ok) { clearDirty(); setSyncStatus("ok", "공용 장부에 저장됨 ✓"); }
+      else if (res && res.error === "closed") {
+        closedAt = res.closedAt || new Date().toISOString();
+        clearDirty(); 보관그리기();
+        setSyncStatus("err", "보관된 진행판입니다 — 저장되지 않았습니다");
+      }
       else { setSyncStatus("err", "저장 실패 — 이 기기에 임시 보관됨"); }
     }).catch(function () {
       setSyncStatus("err", "연결 안 됨 — 이 기기에 임시 보관됨");
@@ -1150,27 +1182,28 @@
         Object.keys(remote).forEach(function (k) {
           if (["checks", "equip", "opendate", "savedAt", "branchCode"].indexOf(k) < 0) syncExtra[k] = remote[k];
         });
+        closedAt = remote.closedAt || null;   // 보관 가름(창구 규약 10/23) — 닫힌 지점은 그대로 보여만 준다
         var rChecks = remote.checks || {};
         var rEquip = remote.equip || [];
         var rOpen = remote.opendate || "";
         var hasLocal = Object.keys(state).length || equip.length || opendate;
         var hasRemote = Object.keys(rChecks).length || rEquip.length || rOpen;
-        if (isDirty() || (hasLocal && !hasRemote)) {
+        if (!closedAt && (isDirty() || (hasLocal && !hasRemote))) {
           Object.keys(rChecks).forEach(function (id) { if (!state[id]) state[id] = rChecks[id]; });
           if (!equip.length && rEquip.length) equip = rEquip;
           if (!opendate && rOpen) opendate = rOpen;
           saveState(state);
           saveEquip();
           saveOpendate();
-          refresh(); renderEquip(); renderOpendate();
+          refresh(); renderEquip(); renderOpendate(); 보관그리기();
           pushRemote();
         } else {
           state = rChecks; equip = rEquip; opendate = rOpen;
           saveState(state);
           saveEquip();
           saveOpendate();
-          refresh(); renderEquip(); renderOpendate();
-          setSyncStatus("ok", "공용 장부와 연결됨 ✓");
+          refresh(); renderEquip(); renderOpendate(); 보관그리기();
+          setSyncStatus("ok", closedAt ? "공용 장부와 연결됨 ✓ (보관본)" : "공용 장부와 연결됨 ✓");
         }
       })
       .catch(function () { setSyncStatus("err", "연결 안 됨 — 이 기기 기록으로 표시 중"); });
