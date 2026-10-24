@@ -5,7 +5,7 @@
 //   본사 장부에 지점을 더하고 주소만 만들면 페이지가 바로 선다(생성·게시 손 0 — 대표 뜻).
 // - 지점별 항목 예외는 코드가 아니라 자료 표(source/항목예외.json → 루트 항목예외.json)로 — 화면이 fetch 로 읽는다.
 // - 옛 지점별 페이지 여섯 주소는 넘기기 문서로 유지(이전 공유 링크 안 끊기게).
-// - pages.json 은 폐지 예정 — 포털 새 판(링크 규칙 고침)이 게시될 때까지만 새 주소 꼴로 계속 낸다.
+// - pages.json 은 폐지됨(10/24 — 포털 판이 /?branch=&name= 꼴로 직접 링크, 더는 안 읽음).
 const fs = require("fs");
 const path = require("path");
 
@@ -78,13 +78,3 @@ for (const b of OLD_PAGES) {
   fs.writeFileSync(path.join(OUT_DIR, b.out), html);
   console.log("넘기기:", b.out, "→", 새주소);
 }
-
-// pages.json — 폐지 예정(포털 새 판 게시 뒤 제거). 그때까지 새 주소 꼴로 유지.
-const pages = {
-  형식버전: "roadmap-pages/0.1",
-  갱신: new Date().toISOString().slice(0, 10),
-  대문: DOMAIN + "/",
-  지점: Object.fromEntries(OLD_PAGES.map(b => [b.code, DOMAIN + `/?branch=${b.code}&name=${encodeURIComponent(b.name)}`])),
-};
-fs.writeFileSync(path.join(OUT_DIR, "pages.json"), JSON.stringify(pages, null, 2) + "\n");
-console.log("생성: pages.json (폐지 예정 — 포털 새 판 뒤 제거, " + Object.keys(pages.지점).length + "지점)");
