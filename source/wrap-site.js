@@ -42,8 +42,24 @@ function head(title, desc, url) {
 `;
 }
 
-// 한 페이지(index.html) — 템플릿 그대로, 생성 치환 없음
+// 뿌리 지점 고르기 목록 (대표 지시 10/29) — 지점 장부(본사 저장소)에서 읽는다. 손으로 안 박는다 — 지점 늘면 재생성으로 저절로.
+//   열린 지점(개원준비) = 단추 · 개원 끝(운영중) = 「개원 완료 · 보관본」 줄 · 시험 지점 제외.
+const 장부파일 = "C:/dev/pixcera/apps/branches/data/지점장부.json";
+const 장부 = JSON.parse(fs.readFileSync(장부파일, "utf8"));   // 못 읽으면 여기서 멈춘다 — 목록 없이 게시하지 않는다
+const 옛주소 = Object.fromEntries(OLD_PAGES.map(b => [b.code, "/" + b.out]));
+const 지점들 = (장부.지점 || []).filter(b => b && /^BR-\d{3}$/.test(String(b.지점코드)) && b.상태 !== "시험");
+const 링크 = b => 옛주소[b.지점코드] || `/?branch=${b.지점코드}&name=${encodeURIComponent(b.지점명)}`;
+const 열린칸 = 지점들.filter(b => b.상태 !== "운영중")
+  .map(b => `      <a class="card" href="${링크(b)}"><span class="dot"></span>${b.지점명} 개원 로드맵</a>`).join("\n");
+const 끝난칸 = 지점들.filter(b => b.상태 === "운영중")
+  .map(b => `      <a class="card closedcard" href="${링크(b)}"><span class="dot"></span>${b.지점명} <span class="chip retiredchip">개원 완료 · 보관본</span></a>`).join("\n");
+const 고르기HTML = 열린칸 + (끝난칸 ? `\n      <h2 class="done-head">개원을 마친 지점 — 보기만 됩니다</h2>\n` + 끝난칸 : "");
+console.log(`지점 고르기: 열린 ${지점들.filter(b => b.상태 !== "운영중").length} · 개원 끝 ${지점들.filter(b => b.상태 === "운영중").length} (장부에서 읽음)`);
+
+// 한 페이지(index.html) — 템플릿 + 고르기 목록 끼움
 let body = fs.readFileSync(path.join(__dirname, "open-roadmap-sanbon.html"), "utf8");
+if (!body.includes("<!--지점고르기-->")) throw new Error("템플릿에 지점고르기 자리가 없다");
+body = body.replace("<!--지점고르기-->", () => 고르기HTML);
 body = body.replace(/^<title>.*<\/title>\s*\n/, "");
 const title = "픽세라 개원 로드맵";
 const desc = "픽세라 지점 개원 준비 진행판입니다. 공유받은 비밀번호로 열어보세요.";

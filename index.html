@@ -354,9 +354,42 @@
   }
 
   #board { display: none; }
+
+  /* ---------- 뿌리 지점 고르기 (10/29) ---------- */
+  #home .home-wrap { max-width: 520px; margin: 0 auto; padding: 60px 20px; text-align: center; }
+  #home .pxgrid { margin: 0 auto; }
+  #home h1 { font-size: 22px; margin: 18px 0 6px; }
+  #home .home-guide { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+  #home .home-note { color: var(--danger); font-size: 13.5px; font-weight: 700; margin: 0 0 10px; }
+  #home a.card {
+    display: flex; align-items: center; gap: 10px; justify-content: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 15px; margin-top: 12px; text-decoration: none; color: var(--ink);
+    font-weight: 700; font-size: 15px; cursor: pointer;
+  }
+  #home a.card:hover { border-color: var(--accent); }
+  #home .dot { width: 10px; height: 10px; border-radius: 2px; background: var(--accent); flex: none; }
+  #home h2.done-head { font-size: 13px; color: var(--muted); margin: 28px 0 0; font-weight: 700; }
+  #home a.card.closedcard { opacity: .85; }
 </style>
 
-<div id="noquery" hidden style="max-width:420px;margin:120px auto;padding:0 20px;text-align:center;font-size:15px;color:var(--muted)">지점 코드가 없습니다 — 공유받은 지점 주소로 들어와 주세요.</div>
+<!-- 뿌리(쿼리 없음) = 지점 고르기 (대표 지시 10/29) — 목록은 생성기가 지점 장부에서 읽어 채운다 -->
+<div id="home" hidden>
+  <div class="home-wrap">
+    <div class="pxgrid" id="home-logo" aria-hidden="true"></div>
+    <h1>픽세라 개원 로드맵</h1>
+    <p id="home-note" class="home-note" hidden>지점 코드가 없습니다 — 아래에서 지점을 골라 주세요.</p>
+    <p class="home-guide">지점을 골라 주세요. 공유받은 비밀번호가 필요합니다.</p>
+          <a class="card" href="/sanbon.html"><span class="dot"></span>산본점 개원 로드맵</a>
+      <a class="card" href="/bundang-migeum.html"><span class="dot"></span>분당미금점 개원 로드맵</a>
+      <a class="card" href="/gimpo.html"><span class="dot"></span>김포점 개원 로드맵</a>
+      <a class="card" href="/gangnam.html"><span class="dot"></span>강남점 개원 로드맵</a>
+      <a class="card" href="/uijeongbu.html"><span class="dot"></span>의정부점 개원 로드맵</a>
+      <a class="card" href="/balsan.html"><span class="dot"></span>발산점 개원 로드맵</a>
+      <h2 class="done-head">개원을 마친 지점 — 보기만 됩니다</h2>
+      <a class="card closedcard" href="/?branch=BR-001&name=%EC%B2%AD%EB%9D%BC%EC%A0%90"><span class="dot"></span>청라점 <span class="chip retiredchip">개원 완료 · 보관본</span></a>
+  </div>
+</div>
 
 <div id="gate">
   <form class="gate-card" id="gate-form" onsubmit="return false">
@@ -416,9 +449,34 @@
   var qs = new URLSearchParams(location.search);
   var BRANCH_CODE = String(qs.get("branch") || "").trim().toUpperCase();
   var BRANCH_NAME = String(qs.get("name") || "").trim().slice(0, 30);
+
+  /* ---------- 픽셀 로고 (픽세라 공식 7×7) — 고르기 화면과 판이 같이 쓴다 ---------- */
+  var LOGO = [
+    "1110111",
+    "1011001",
+    "1101101",
+    "0110110",
+    "1011011",
+    "1001101",
+    "1110111"
+  ];
+  function drawLogo(el) {
+    if (!el) return;
+    for (var r = 0; r < 7; r++) {
+      for (var c = 0; c < 7; c++) {
+        var i = document.createElement("i");
+        if (LOGO[r].charAt(c) === "1") i.className = "on";
+        el.appendChild(i);
+      }
+    }
+  }
+
   if (!/^BR-\d{3}$/.test(BRANCH_CODE)) {
+    // 뿌리·코드 꼴 아님 → 지점 고르기 (대표 지시 10/29). 코드가 틀린 채 왔으면 안내 한 줄도 같이.
     document.getElementById("gate").hidden = true;
-    document.getElementById("noquery").hidden = false;
+    document.getElementById("home").hidden = false;
+    if (BRANCH_CODE || BRANCH_NAME) document.getElementById("home-note").hidden = false;
+    drawLogo(document.getElementById("home-logo"));
     return;
   }
   var 제목 = "픽세라 " + (BRANCH_NAME ? BRANCH_NAME + " " : "") + "개원 로드맵";
@@ -543,26 +601,7 @@
     joint:  { cls: "joint",  label: "🤝 공동" }
   };
 
-  /* ---------- 픽셀 로고 (픽세라 공식 7×7) ---------- */
-  var LOGO = [
-    "1110111",
-    "1011001",
-    "1101101",
-    "0110110",
-    "1011011",
-    "1001101",
-    "1110111"
-  ];
-  function drawLogo(el) {
-    if (!el) return;
-    for (var r = 0; r < 7; r++) {
-      for (var c = 0; c < 7; c++) {
-        var i = document.createElement("i");
-        if (LOGO[r].charAt(c) === "1") i.className = "on";
-        el.appendChild(i);
-      }
-    }
-  }
+  /* ---------- 픽셀 로고 — 선언은 위(고르기 화면과 공용) ---------- */
   drawLogo(document.getElementById("gate-logo"));
   drawLogo(document.getElementById("head-logo"));
   drawLogo(document.getElementById("foot-logo"));

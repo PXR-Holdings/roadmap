@@ -107,11 +107,23 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
     검(/\d+ \/ 46 완료/.test(글), "항목 46(예외 하나 더)", (글.match(/\d+ \/ \d+ 완료/) || [])[0]);
     await 캡처("02-의정부");
 
-    // ③ 쿼리 없음 — 안내 한 줄
-    await 가기("/", /지점 코드가 없습니다/);
-    검(/지점 코드가 없습니다/.test(await 글자()), "쿼리 없음 → 「지점 코드가 없습니다」 한 줄");
-    검(await 평가(`document.getElementById("gate").hidden === true`), "쿼리 없음 → 비밀번호 문 안 보임");
-    await 캡처("03-쿼리없음");
+    // ③ 뿌리 — 지점 고르기 (대표 지시 10/29)
+    await 가기("/", /지점을 골라 주세요/);
+    글 = await 글자();
+    검(/픽세라 개원 로드맵/.test(글) && /지점을 골라 주세요/.test(글), "뿌리 → 지점 고르기 화면");
+    검(await 평가(`document.getElementById("gate").hidden === true`), "뿌리 → 비밀번호 문 안 보임");
+    검(await 평가(`document.getElementById("home-note").hidden === true`), "뿌리 → 「코드가 없습니다」 줄 안 보임(고르기만)");
+    const 단추들 = await 평가(`[...document.querySelectorAll("#home a.card:not(.closedcard)")].map(a => a.textContent.trim())`);
+    검(단추들.length >= 6 && 단추들.some(t => /발산점/.test(t)), "열린 지점 단추(장부에서) — 발산 포함", 단추들.join(" | "));
+    const 끝줄 = await 평가(`[...document.querySelectorAll("#home a.card.closedcard")].map(a => a.textContent.trim())`);
+    검(끝줄.length >= 1 && /청라점/.test(끝줄.join(" ")) && /개원 완료 · 보관본/.test(끝줄.join(" ")), "개원 끝 줄 — 보관본 표시", 끝줄.join(" | "));
+    검(await 평가(`getComputedStyle(document.querySelector("#home a.card")).cursor === "pointer"`), "단추는 손가락 모양");
+    await 캡처("03-지점고르기");
+    // 고르기 → 발산 단추 누르면 판으로(이미 비밀번호를 푼 상태라 바로 열림)
+    await 평가(`[...document.querySelectorAll("#home a.card")].find(a => /발산점/.test(a.textContent)).click()`);
+    for (let i = 0; i < 30; i++) { await 자기(300); if (/발산점 개원 로드맵/.test(await 평가("document.body ? document.body.innerText : \"\""))) break; }
+    콘솔모으기();
+    검(/발산점 개원 로드맵/.test(await 글자()), "고르기 → 발산 단추 → 판 열림");
 
     // ④ 옛 주소 넘기기
     await 가기("/balsan.html", /개원 로드맵/);
@@ -119,9 +131,10 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
     검(/branch=BR-008/.test(await 평가("location.search")), "옛 주소 → 새 주소로 넘어감", await 평가("location.href"));
     검(/픽세라 발산점 개원 로드맵/.test(await 평가("document.title")), "넘어간 판 제목(발산)");
 
-    // ⑤ 틀린 코드 꼴
-    await 가기("/?branch=abc&name=x", /지점 코드가 없습니다/);
-    검(/지점 코드가 없습니다/.test(await 글자()), "코드 꼴 아니면 같은 안내 한 줄");
+    // ⑤ 틀린 코드 꼴 — 고르기 + 안내 한 줄
+    await 가기("/?branch=abc&name=x", /지점을 골라 주세요/);
+    글 = await 글자();
+    검(/지점 코드가 없습니다/.test(글) && /지점을 골라 주세요/.test(글), "코드 꼴 아니면 안내 한 줄 + 고르기");
 
     // ⑥~⑧ 보관(막고 보관) — 가짜 창구에서만(창구 규약 닫기·보관 10/23)
     if (가짜창구켬) {
