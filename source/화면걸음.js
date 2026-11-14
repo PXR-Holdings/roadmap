@@ -3,7 +3,8 @@
 // 전제: 로컬 미리보기 서버가 떠 있다(기본 http://127.0.0.1:8377 — npx http-server . -p 8377).
 //   node source/화면걸음.js [--주소 http://127.0.0.1:8377] [--캡처폴더 <폴더>]
 // 걸음: ① /?branch=BR-008&name=발산점 — 문 제목·비밀번호 → 판 열림·45항목·코드 표시 ② /?branch=BR-007&name=의정부점 — 예외 항목(권리양도)·46항목
-//       ③ / — 「지점 코드가 없습니다」 ④ /balsan.html — 새 주소로 넘어감
+//       ③ / — 지점 고르기(목록 없으면 박힌 예비) ④ /balsan.html — 새 주소로 넘어감 ⑤ 틀린 코드 → 안내+고르기
+//       ⑥~⑧(--가짜창구) 열림 저장·닫힘 보관·그새 닫힘 ⑨~⑪(--가짜창구) ?list 목록 — 고르기 다시 그림·장부 이름 따라감·운영 전환=보관 자동
 // 격리(로컬)에서는 공용 장부 창구가 CORS 로 막혀 「연결 안 됨」이 정상 — 그 오류만 거르고 나머지 콘솔 오류는 0 이어야 통과.
 "use strict";
 const fs = require("fs"), os = require("os"), path = require("path"), http = require("http");
@@ -13,7 +14,7 @@ const 값 = (이름, 기본) => { const i = 인자.indexOf(이름); return i >= 
 const 주소 = 값("--주소", "http://127.0.0.1:8377");
 // --가짜창구: 공용 장부 창구 호출을 CDP 로 가로채 가짜 답을 준다(격리 — 보관 열림/닫힘 걸음용 · 운영 걸음에선 쓰지 않는다)
 const 가짜창구켬 = 인자.includes("--가짜창구");
-const 가짜 = { state: { checks: {}, equip: [], opendate: "" }, 닫힘저장: false };
+const 가짜 = { state: { checks: {}, equip: [], opendate: "" }, 닫힘저장: false, 목록: null };   // 목록 = ?list 답(장부따라가기 v0) — null 이면 목록 없음 꼴
 const 캡처폴더 = 값("--캡처폴더", fs.mkdtempSync(path.join(os.tmpdir(), "진행판화면-")));
 fs.mkdirSync(캡처폴더, { recursive: true });
 const 디버그포트 = 19233;
@@ -63,7 +64,8 @@ async function 가짜답(p, sid) {
       가짜.state.savedAt = new Date().toISOString();
       답 = { ok: true, state: 가짜.state };
     }
-  } else 답 = { ok: true, state: 가짜.state };
+  } else if (/[?&]list/.test(p.request.url)) 답 = 가짜.목록 ? { ok: true, branches: 가짜.목록, savedAt: new Date().toISOString() } : { ok: false, error: "bad_request" };
+  else 답 = { ok: true, state: 가짜.state };
   await 보내기("Fetch.fulfillRequest", { requestId: p.requestId, responseCode: 200, responseHeaders: 몸머리, body: Buffer.from(JSON.stringify(답)).toString("base64") }, sid);
 }
 let S;
@@ -172,6 +174,42 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       검(await 평가(`document.querySelector('#item-contract input').disabled === true`), "그새 닫힘 — 입력 잠김");
       await 캡처("06-닫힘저장답");
       가짜.닫힘저장 = false;
+
+      // ⑨ 지점 목록(?list) — 고르기 화면이 본사 장부 목록으로 다시 그려짐(장부따라가기 v0 ㉮)
+      가짜.목록 = [
+        { code: "BR-001", name: "청라점", status: "운영중" },
+        { code: "BR-002", name: "시험점", status: "시험" },
+        { code: "BR-003", name: "산본점", status: "개원준비" },
+        { code: "BR-006", name: "잠실점", status: "개원준비" },
+        { code: "BR-009", name: "동탄점", status: "개원준비", openDate: "2027-03-02" }
+      ];
+      await 가기("/", /지점을 골라 주세요/);
+      await 자기(1000); 콘솔모으기();
+      const 목록단추 = await 평가(`[...document.querySelectorAll("#home a.card:not(.closedcard)")].map(a => a.textContent.trim())`);
+      검(목록단추.some(t => /잠실점/.test(t)) && 목록단추.some(t => /동탄점/.test(t)), "목록 — 잠실·동탄 단추(장부 이름 저절로)", 목록단추.join(" | "));
+      검(!목록단추.some(t => /강남점/.test(t)) && !목록단추.some(t => /시험점/.test(t)), "목록 — 옛 이름·시험 지점 없음");
+      const 목록끝줄 = await 평가(`[...document.querySelectorAll("#home a.card.closedcard")].map(a => a.textContent.trim())`);
+      검(목록끝줄.length === 1 && /청라점/.test(목록끝줄[0]) && /개원 완료 · 보관본/.test(목록끝줄[0]), "목록 — 운영중 = 보관본 줄", 목록끝줄.join(" | "));
+      검(/branch=BR-006/.test(await 평가(`[...document.querySelectorAll("#home a.card")].find(a => /잠실점/.test(a.textContent)).getAttribute("href")`)), "목록 — 단추 주소는 쿼리 꼴(코드 그대로)");
+      await 캡처("07-목록고르기");
+
+      // ⑩ 판 — 옛 이름 주소로 와도 제목·머리글은 장부 이름으로
+      await 가기("/?branch=BR-006&name=" + encodeURIComponent("강남점"), /개원 로드맵/);
+      for (let i = 0; i < 20 && !/잠실점/.test(await 평가(`document.getElementById("board-title").textContent`)); i++) await 자기(300);
+      콘솔모으기();
+      검(/잠실점 개원 로드맵/.test(await 평가(`document.getElementById("board-title").textContent`)), "판 — 제목이 장부 이름(잠실)으로", await 평가(`document.getElementById("board-title").textContent`));
+      검(/픽세라 잠실점 개원 로드맵/.test(await 평가("document.title")), "판 — 문서 제목도 장부 이름");
+      await 캡처("08-장부이름판");
+
+      // ⑪ 판 — 목록 상태 「운영중」이면 보관 자동(닫힌 날 없이도 띠·잠금)
+      가짜.목록 = 가짜.목록.map(b => b.code === "BR-003" ? { code: "BR-003", name: "산본점", status: "운영중" } : b);
+      await 가기("/?branch=BR-003&name=" + encodeURIComponent("산본점"), /개원 로드맵/);
+      for (let i = 0; i < 20 && (await 평가(`document.getElementById("closed-banner").hidden`)); i++) await 자기(300);
+      콘솔모으기();
+      검(/개원 완료 · 보관본/.test(await 평가(`document.getElementById("closed-banner").textContent`)), "운영 전환 — 보관 띠 자동(목록 상태만으로)", await 평가(`document.getElementById("closed-banner").textContent`));
+      검(await 평가(`document.querySelector('#item-contract input').disabled === true`), "운영 전환 — 입력 잠김");
+      await 캡처("09-운영전환보관");
+      가짜.목록 = null;
     }
 
     콘솔모으기();
