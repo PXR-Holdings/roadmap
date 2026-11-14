@@ -374,7 +374,7 @@
 </style>
 
 <!-- 뿌리(쿼리 없음) = 지점 고르기 (대표 지시 10/29) — 목록의 원본은 본사 지점 탭(장부따라가기 v0 ㉮, 대표 결정 11/14).
-     창구 ?list 가 답하면 그 목록으로 다시 그리고, 아직 없거나 못 읽으면 아래 박힌 목록 그대로(과도기 — 창구가 서면 걷는다). -->
+     화면이 창구 ?list 를 읽어 그린다(박힌 목록 없음 — 11/14 밀기 판 운영 뒤 걷음). 못 읽으면 경고 줄(지어내지 않음 — 장애 원칙 8/24). -->
 <div id="home" hidden>
   <div class="home-wrap">
     <div class="pxgrid" id="home-logo" aria-hidden="true"></div>
@@ -382,14 +382,7 @@
     <p id="home-note" class="home-note" hidden>지점 코드가 없습니다 — 아래에서 지점을 골라 주세요.</p>
     <p class="home-guide">지점을 골라 주세요. 공유받은 비밀번호가 필요합니다.</p>
     <div id="home-list">
-      <a class="card" href="/sanbon.html"><span class="dot"></span>산본점 개원 로드맵</a>
-      <a class="card" href="/bundang-migeum.html"><span class="dot"></span>분당미금점 개원 로드맵</a>
-      <a class="card" href="/gimpo.html"><span class="dot"></span>김포점 개원 로드맵</a>
-      <a class="card" href="/gangnam.html"><span class="dot"></span>강남점 개원 로드맵</a>
-      <a class="card" href="/uijeongbu.html"><span class="dot"></span>의정부점 개원 로드맵</a>
-      <a class="card" href="/balsan.html"><span class="dot"></span>발산점 개원 로드맵</a>
-      <h2 class="done-head">개원을 마친 지점 — 보기만 됩니다</h2>
-      <a class="card closedcard" href="/?branch=BR-001&name=%EC%B2%AD%EB%9D%BC%EC%A0%90"><span class="dot"></span>청라점 <span class="chip retiredchip">개원 완료 · 보관본</span></a>
+      <p id="home-loading" class="home-guide">지점 목록을 불러오는 중…</p>
     </div>
   </div>
 </div>
@@ -476,7 +469,7 @@
 
   /* ---------- 지점 목록 — 원본은 본사 지점 탭(장부따라가기 v0 ㉮, 대표 결정 11/14) ----------
      창구 ?list 가 {ok:true,branches:[{code,name,status,openDate}]} 로 답하면 그 목록이 원본.
-     아직 없거나 못 읽으면 null → 박힌 꼴 그대로(과도기 — 창구가 서면 박힌 목록을 걷는다). */
+     못 읽으면 null → 고르기는 경고 줄(지어내지 않음), 판은 주소 쿼리 이름 그대로. */
   var STORE_URL = "https://ps8sq0dj15.execute-api.ap-northeast-2.amazonaws.com";
   function fetchBranchList() {
     return fetch(STORE_URL + "/?list", { cache: "no-store" })
@@ -539,7 +532,17 @@
     document.getElementById("home").hidden = false;
     if (BRANCH_CODE || BRANCH_NAME) document.getElementById("home-note").hidden = false;
     drawLogo(document.getElementById("home-logo"));
-    목록약속.then(function (bs) { if (bs) 고르기그리기(bs); });
+    목록약속.then(function (bs) {
+      if (bs) { 고르기그리기(bs); return; }
+      // 목록을 못 읽음 — 대체 목록을 지어내지 않는다(장애 원칙 8/24): 경고 한 줄만
+      var holder = document.getElementById("home-list");
+      if (!holder) return;
+      holder.textContent = "";
+      var warn = document.createElement("p");
+      warn.className = "home-note";
+      warn.textContent = "지점 목록을 불러오지 못했습니다 — 잠시 후 다시 열어 주세요.";
+      holder.appendChild(warn);
+    });
     return;
   }
   var 제목 = "픽세라 " + (BRANCH_NAME ? BRANCH_NAME + " " : "") + "개원 로드맵";

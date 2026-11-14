@@ -3,7 +3,7 @@
 // 전제: 로컬 미리보기 서버가 떠 있다(기본 http://127.0.0.1:8377 — npx http-server . -p 8377).
 //   node source/화면걸음.js [--주소 http://127.0.0.1:8377] [--캡처폴더 <폴더>]
 // 걸음: ① /?branch=BR-008&name=발산점 — 문 제목·비밀번호 → 판 열림·45항목·코드 표시 ② /?branch=BR-007&name=의정부점 — 예외 항목(권리양도)·46항목
-//       ③ / — 지점 고르기(목록 없으면 박힌 예비) ④ /balsan.html — 새 주소로 넘어감 ⑤ 틀린 코드 → 안내+고르기
+//       ③ / — 지점 고르기(창구 목록으로 · 못 읽으면 경고 줄) ④ /balsan.html — 새 주소로 넘어감 ⑤ 틀린 코드 → 안내+고르기
 //       ⑥~⑧(--가짜창구) 열림 저장·닫힘 보관·그새 닫힘 ⑨~⑪(--가짜창구) ?list 목록 — 고르기 다시 그림·장부 이름 따라감·운영 전환=보관 자동
 // 격리(로컬)에서는 공용 장부 창구가 CORS 로 막혀 「연결 안 됨」이 정상 — 그 오류만 거르고 나머지 콘솔 오류는 0 이어야 통과.
 "use strict";
@@ -109,23 +109,30 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
     검(/\d+ \/ 46 완료/.test(글), "항목 46(예외 하나 더)", (글.match(/\d+ \/ \d+ 완료/) || [])[0]);
     await 캡처("02-의정부");
 
-    // ③ 뿌리 — 지점 고르기 (대표 지시 10/29)
+    // ③ 뿌리 — 지점 고르기: 목록은 창구 ?list 에서(11/14 둘째 커밋 — 박힌 목록 없음).
+    //    목록이 오면 단추들, 못 읽으면(격리 CORS·창구 장애) 경고 줄 — 지어내지 않음(장애 원칙 8/24).
     await 가기("/", /지점을 골라 주세요/);
+    await 자기(1200); 콘솔모으기();   // 목록 fetch 기다림
     글 = await 글자();
     검(/픽세라 개원 로드맵/.test(글) && /지점을 골라 주세요/.test(글), "뿌리 → 지점 고르기 화면");
     검(await 평가(`document.getElementById("gate").hidden === true`), "뿌리 → 비밀번호 문 안 보임");
     검(await 평가(`document.getElementById("home-note").hidden === true`), "뿌리 → 「코드가 없습니다」 줄 안 보임(고르기만)");
     const 단추들 = await 평가(`[...document.querySelectorAll("#home a.card:not(.closedcard)")].map(a => a.textContent.trim())`);
-    검(단추들.length >= 6 && 단추들.some(t => /발산점/.test(t)), "열린 지점 단추(장부에서) — 발산 포함", 단추들.join(" | "));
-    const 끝줄 = await 평가(`[...document.querySelectorAll("#home a.card.closedcard")].map(a => a.textContent.trim())`);
-    검(끝줄.length >= 1 && /청라점/.test(끝줄.join(" ")) && /개원 완료 · 보관본/.test(끝줄.join(" ")), "개원 끝 줄 — 보관본 표시", 끝줄.join(" | "));
-    검(await 평가(`getComputedStyle(document.querySelector("#home a.card")).cursor === "pointer"`), "단추는 손가락 모양");
-    await 캡처("03-지점고르기");
-    // 고르기 → 발산 단추 누르면 판으로(이미 비밀번호를 푼 상태라 바로 열림)
-    await 평가(`[...document.querySelectorAll("#home a.card")].find(a => /발산점/.test(a.textContent)).click()`);
-    for (let i = 0; i < 30; i++) { await 자기(300); if (/발산점 개원 로드맵/.test(await 평가("document.body ? document.body.innerText : \"\""))) break; }
-    콘솔모으기();
-    검(/발산점 개원 로드맵/.test(await 글자()), "고르기 → 발산 단추 → 판 열림");
+    if (단추들.length) {
+      검(단추들.some(t => /발산점/.test(t)), "열린 지점 단추(창구 목록) — 발산 포함", 단추들.join(" | "));
+      const 끝줄 = await 평가(`[...document.querySelectorAll("#home a.card.closedcard")].map(a => a.textContent.trim())`);
+      검(끝줄.length >= 1 && /청라점/.test(끝줄.join(" ")) && /개원 완료 · 보관본/.test(끝줄.join(" ")), "개원 끝 줄 — 보관본 표시", 끝줄.join(" | "));
+      검(await 평가(`getComputedStyle(document.querySelector("#home a.card")).cursor === "pointer"`), "단추는 손가락 모양");
+      await 캡처("03-지점고르기");
+      // 고르기 → 발산 단추 누르면 판으로(이미 비밀번호를 푼 상태라 바로 열림)
+      await 평가(`[...document.querySelectorAll("#home a.card")].find(a => /발산점/.test(a.textContent)).click()`);
+      for (let i = 0; i < 30; i++) { await 자기(300); if (/발산점 개원 로드맵/.test(await 평가("document.body ? document.body.innerText : \"\""))) break; }
+      콘솔모으기();
+      검(/발산점 개원 로드맵/.test(await 글자()), "고르기 → 발산 단추 → 판 열림");
+    } else {
+      검(/지점 목록을 불러오지 못했습니다/.test(글), "목록 못 읽음 — 경고 줄(대체 목록 지어내지 않음)", 글.split("\n").slice(0, 6).join(" / "));
+      await 캡처("03-지점고르기-장애줄");
+    }
 
     // ④ 옛 주소 넘기기
     await 가기("/balsan.html", /개원 로드맵/);

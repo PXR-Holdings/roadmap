@@ -43,8 +43,8 @@ function head(title, desc, url) {
 }
 
 // 뿌리 지점 고르기 목록 — 원본은 본사 지점 탭(장부따라가기 v0 ㉮, 대표 결정 11/14): 화면이 창구 ?list 를 읽어 그린다.
-//   생성기는 더 이상 장부를 읽지 않는다(노트북 사본은 운영 정본이 아니었다 — 10/29 스냅샷이 굳던 뿌리 원인).
-//   템플릿 #home-list 안의 박힌 목록은 ?list 가 서기 전 과도기 예비 — 창구가 서면 걷는다.
+//   생성기는 장부를 읽지 않는다(노트북 사본은 운영 정본이 아니었다 — 10/29 스냅샷이 굳던 뿌리 원인).
+//   박힌 예비 목록도 없음(11/14 밀기 판 운영 뒤 걷음) — 못 읽으면 화면이 경고 줄만 보인다(장애 원칙 8/24).
 
 // 한 페이지(index.html) — 템플릿 그대로(지점 목록은 화면이 ?list 에서)
 let body = fs.readFileSync(path.join(__dirname, "open-roadmap-sanbon.html"), "utf8");
@@ -52,7 +52,7 @@ body = body.replace(/^<title>.*<\/title>\s*\n/, "");
 const title = "픽세라 개원 로드맵";
 const desc = "픽세라 지점 개원 준비 진행판입니다. 공유받은 비밀번호로 열어보세요.";
 fs.writeFileSync(path.join(OUT_DIR, "index.html"), head(title, desc, DOMAIN + "/") + body + "\n</body>\n</html>\n");
-console.log("생성: index.html (한 페이지 — 지점은 주소 쿼리 · 고르기 목록은 창구 ?list, 과도기 예비 목록 포함)");
+console.log("생성: index.html (한 페이지 — 지점은 주소 쿼리 · 고르기 목록은 창구 ?list 에서만)");
 
 // 지점별 항목 예외 자료 표 — 원본은 source/항목예외.json, 루트로 복사(화면이 fetch)
 const over = fs.readFileSync(path.join(__dirname, "항목예외.json"), "utf8");
