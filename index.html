@@ -605,8 +605,11 @@
     var key = "";
     try { key = sessionStorage.getItem("pxr-gate-key") || ""; } catch (e) {}
     if (!key) return;
+    /* 지점이 많아 한꺼번에 물으면 창구가 순간 몰림(503)을 돌려줄 수 있다 — 한 지점씩 차례로 */
+    var 줄 = Promise.resolve();
     열린.forEach(function (b) {
-      fetch(STORE_URL + "?branch=" + b.code + "&key=" + encodeURIComponent(key))
+      줄 = 줄.then(function () {
+        return fetch(STORE_URL + "?branch=" + b.code + "&key=" + encodeURIComponent(key))
         .then(function (r) { return r.json(); })
         .catch(function () { return null; })
         .then(function (res) {
@@ -629,6 +632,7 @@
           }
           a.appendChild(line);
         });
+      });
     });
   }
 
