@@ -401,6 +401,33 @@
   .eq-warn-tag.late { background: var(--danger-soft); color: var(--danger); }
   .home-sum { display: block; flex-basis: 100%; font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
   .home-sum .late { color: var(--danger); font-weight: 800; }
+  .edit-link { display: inline-block; margin-top: 26px; font-size: 12px; color: var(--muted); text-decoration: none; cursor: pointer; }
+  .edit-link:hover { color: var(--accent); }
+
+  /* ---------- 목록 편집 (본사 · 목업 11/15 조각 6) ---------- */
+  #editor { display: none; }
+  #editor .wrap { max-width: 760px; }
+  #editor h1 { font-size: 21px; margin: 16px 0 4px; }
+  .edit-note { font-size: 13px; color: var(--muted); margin: 0 0 16px; }
+  .edit-sec { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); margin-top: 14px; padding: 12px 14px; }
+  .edit-sec h2 { font-size: 15px; margin: 0 0 8px; }
+  .edit-sec h2 .period-dday { margin-right: 8px; }
+  .edit-row { border-bottom: 1px dashed var(--line); padding: 8px 0; }
+  .edit-row.hiddenrow { opacity: .55; }
+  .edit-row .edit-line { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .edit-row input, .edit-row select { font-family: inherit; font-size: 13px; padding: 6px 8px;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); min-width: 0; }
+  .edit-row .e-name { flex: 1; min-width: 160px; font-weight: 700; }
+  .edit-row .e-note { flex: 1; min-width: 220px; }
+  .edit-btn { font-family: inherit; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+  .edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .edit-btn.warn { color: var(--danger); }
+  #edit-status { font-size: 13.5px; font-weight: 700; min-height: 20px; margin-top: 10px; }
+  #edit-status.ok { color: var(--accent); }
+  #edit-status.err { color: var(--danger); }
+  .edit-save { margin-top: 14px; padding: 11px 22px; font-size: 15px; font-weight: 700;
+    background: var(--accent); color: #fff; border: none; border-radius: 9px; cursor: pointer; }
 
   #board { display: none; }
 
@@ -432,6 +459,35 @@
     <p class="home-guide">지점을 골라 주세요. 공유받은 비밀번호가 필요합니다.</p>
     <div id="home-list">
       <p id="home-loading" class="home-guide">지점 목록을 불러오는 중…</p>
+    </div>
+    <a class="edit-link" href="/?edit">본사: 준비 목록 편집</a>
+  </div>
+</div>
+
+<!-- 목록 편집 (본사 · 목업 11/15 조각 6) — 저장은 창구가 본사용 편집 비밀번호 지문으로 판정(접점 v0) -->
+<div id="editor">
+  <div class="wrap">
+    <div class="pxgrid" id="edit-logo" aria-hidden="true"></div>
+    <h1>준비 목록 편집 — 본사</h1>
+    <p class="edit-note">전 지점이 같은 목록을 씁니다. 글을 고쳐도 항목 열쇠는 그대로라 지점들이 이미 누른 체크는 보존됩니다. 걷은 항목은 판에서 숨겨질 뿐 자료에 남아 언제든 되살릴 수 있습니다.</p>
+    <div id="edit-gate">
+      <div class="gate-card" style="margin:0 auto">
+        <h1 style="font-size:17px">본사용 편집 비밀번호</h1>
+        <p>목록을 고치려면 본사용 편집 비밀번호를 입력하세요</p>
+        <input type="password" id="edit-pw" autocomplete="off" aria-label="본사용 편집 비밀번호" style="letter-spacing:.2em" />
+        <button type="button" id="edit-open">열기</button>
+        <div id="edit-gate-err" role="alert" style="color:var(--danger);font-size:13px;min-height:20px;margin-top:10px"></div>
+      </div>
+    </div>
+    <div id="edit-area" hidden>
+      <div id="edit-sections"></div>
+      <div class="edit-sec" id="edit-catalog-sec">
+        <h2>중요 품목 — 본사 기본 목록</h2>
+        <p class="edit-note" style="margin-bottom:8px">새 지점 진행판의 「본사 기본 목록 불러오기」 단추가 이 목록을 가져갑니다. 날짜는 지점이 채웁니다.</p>
+        <div id="edit-catalog"></div>
+      </div>
+      <button type="button" class="edit-save" id="edit-save">저장</button>
+      <div id="edit-status" role="status"></div>
     </div>
   </div>
 </div>
@@ -566,6 +622,8 @@
       });
   }
   var 목록약속 = fetchBranchList();
+  var ITEM_GROUPS = ["가구·집기", "간판·사인", "전산", "소모품", "인쇄물", "기타"];   // 중요 품목 묶음(판·편집 공용)
+  var ITEM_STATUSES = ["발주 전", "발주함", "받음", "설치 끝"];
 
   function 목록카드(b, 끝남) {
     var a = document.createElement("a");
@@ -636,6 +694,194 @@
     });
   }
 
+  /* ---------- 목록 편집 화면 (본사 · /?edit · 목업 11/15 조각 6) ---------- */
+  function 편집화면() {
+    document.getElementById("gate").hidden = true;
+    document.getElementById("gate").style.display = "none";
+    var ed = document.getElementById("editor");
+    ed.style.display = "block";
+    drawLogo(document.getElementById("edit-logo"));
+    document.title = "픽세라 개원 로드맵 — 목록 편집";
+    var 자료 = null;   // {sections, itemsCatalog} — 저장 단추가 통째로 올린다
+    var 새번호 = 0;
+    function 상태(kind, 글) {
+      var el = document.getElementById("edit-status");
+      el.textContent = 글; el.className = kind || "";
+    }
+    function 편집열쇠() { try { return sessionStorage.getItem("pxr-edit-key") || ""; } catch (e) { return ""; } }
+    function 문열기() {
+      document.getElementById("edit-gate").hidden = true;
+      document.getElementById("edit-area").hidden = false;
+      그리기();
+    }
+    document.getElementById("edit-open").addEventListener("click", function () {
+      var v = document.getElementById("edit-pw").value;
+      if (!v) { document.getElementById("edit-gate-err").textContent = "비밀번호를 입력해 주세요."; return; }
+      try { sessionStorage.setItem("pxr-edit-key", v); } catch (e) {}
+      document.getElementById("edit-pw").value = "";
+      문열기();
+    });
+    document.getElementById("edit-pw").addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter") document.getElementById("edit-open").click();
+    });
+
+    var WHO_GLORY = [["branch", "지점"], ["hq", "본사"], ["joint", "공동"]];
+    function 구간들() { return 자료.sections.map(function (s) { return { id: s.id, title: s.title }; }); }
+    function 항목줄(sec, it) {
+      var row = document.createElement("div");
+      row.className = "edit-row" + (it.hidden ? " hiddenrow" : "");
+      var line = document.createElement("div"); line.className = "edit-line";
+      var up = document.createElement("button");
+      up.type = "button"; up.className = "edit-btn"; up.textContent = "↑"; up.setAttribute("aria-label", "위로");
+      up.addEventListener("click", function () {
+        var i = sec.items.indexOf(it);
+        if (i > 0) { sec.items.splice(i, 1); sec.items.splice(i - 1, 0, it); 그리기(); }
+      });
+      var down = document.createElement("button");
+      down.type = "button"; down.className = "edit-btn"; down.textContent = "↓"; down.setAttribute("aria-label", "아래로");
+      down.addEventListener("click", function () {
+        var i = sec.items.indexOf(it);
+        if (i >= 0 && i < sec.items.length - 1) { sec.items.splice(i, 1); sec.items.splice(i + 1, 0, it); 그리기(); }
+      });
+      var name = document.createElement("input");
+      name.className = "e-name"; name.value = it.name || ""; name.placeholder = "항목 이름";
+      name.setAttribute("aria-label", "항목 이름");
+      name.addEventListener("input", function () { it.name = name.value; });
+      var who = document.createElement("select");
+      who.setAttribute("aria-label", "담당");
+      WHO_GLORY.forEach(function (w) {
+        var o = document.createElement("option"); o.value = w[0]; o.textContent = w[1];
+        who.appendChild(o);
+      });
+      who.value = ["branch", "hq", "joint"].indexOf(it.who) >= 0 ? it.who : "joint";
+      who.addEventListener("change", function () { it.who = who.value; });
+      var move = document.createElement("select");
+      move.setAttribute("aria-label", "구간");
+      구간들().forEach(function (s) {
+        var o = document.createElement("option"); o.value = s.id; o.textContent = s.title;
+        move.appendChild(o);
+      });
+      move.value = sec.id;
+      move.addEventListener("change", function () {
+        var 받을 = null;
+        자료.sections.forEach(function (s) { if (s.id === move.value) 받을 = s; });
+        if (!받을 || 받을 === sec) return;
+        var i = sec.items.indexOf(it);
+        if (i >= 0) { sec.items.splice(i, 1); 받을.items.push(it); 그리기(); }
+      });
+      var hide = document.createElement("button");
+      hide.type = "button"; hide.className = "edit-btn" + (it.hidden ? "" : " warn");
+      hide.textContent = it.hidden ? "되살리기" : "걷기";
+      hide.addEventListener("click", function () {
+        if (it.hidden) delete it.hidden; else it.hidden = true;
+        그리기();
+      });
+      line.appendChild(up); line.appendChild(down); line.appendChild(name);
+      line.appendChild(who); line.appendChild(move); line.appendChild(hide);
+      var line2 = document.createElement("div"); line2.className = "edit-line"; line2.style.marginTop = "4px";
+      var note = document.createElement("input");
+      note.className = "e-note"; note.value = it.note || ""; note.placeholder = "비고(항목 아래 설명 글)";
+      note.setAttribute("aria-label", "비고");
+      note.addEventListener("input", function () { it.note = note.value; });
+      line2.appendChild(note);
+      row.appendChild(line); row.appendChild(line2);
+      return row;
+    }
+    function 그리기() {
+      if (!자료) return;   // 목록을 아직 읽는 중 — 읽기가 끝나면 다시 그린다
+      var holder = document.getElementById("edit-sections");
+      holder.textContent = "";
+      자료.sections.forEach(function (sec) {
+        var card = document.createElement("div"); card.className = "edit-sec";
+        var h = document.createElement("h2");
+        var chip = document.createElement("span"); chip.className = "period-dday"; chip.textContent = sec.dday || "";
+        h.appendChild(chip); h.appendChild(document.createTextNode(sec.title));
+        card.appendChild(h);
+        sec.items.forEach(function (it) { card.appendChild(항목줄(sec, it)); });
+        var add = document.createElement("button");
+        add.type = "button"; add.className = "equip-add"; add.textContent = "+ 항목 더하기";
+        add.addEventListener("click", function () {
+          sec.items.push({ id: "x" + Date.now().toString(36) + (++새번호), who: "joint", name: "", note: "" });
+          그리기();
+        });
+        card.appendChild(add);
+        holder.appendChild(card);
+      });
+      var cat = document.getElementById("edit-catalog");
+      cat.textContent = "";
+      자료.itemsCatalog.forEach(function (c) {
+        var row = document.createElement("div"); row.className = "edit-row";
+        var line = document.createElement("div"); line.className = "edit-line";
+        var grp = document.createElement("select");
+        grp.setAttribute("aria-label", "묶음");
+        ITEM_GROUPS.forEach(function (g) {
+          var o = document.createElement("option"); o.value = g; o.textContent = g;
+          grp.appendChild(o);
+        });
+        grp.value = ITEM_GROUPS.indexOf(c.group) >= 0 ? c.group : "기타";
+        grp.addEventListener("change", function () { c.group = grp.value; });
+        var name = document.createElement("input");
+        name.className = "e-name"; name.value = c.name || ""; name.placeholder = "품목";
+        name.setAttribute("aria-label", "품목");
+        name.addEventListener("input", function () { c.name = name.value; });
+        var qty = document.createElement("input");
+        qty.style.width = "70px"; qty.value = c.qty || ""; qty.placeholder = "수량";
+        qty.setAttribute("aria-label", "수량");
+        qty.addEventListener("input", function () { c.qty = qty.value; });
+        var del = document.createElement("button");
+        del.type = "button"; del.className = "edit-btn warn"; del.textContent = "✕";
+        del.setAttribute("aria-label", "품목 빼기");
+        del.addEventListener("click", function () {
+          var i = 자료.itemsCatalog.indexOf(c);
+          if (i >= 0) { 자료.itemsCatalog.splice(i, 1); 그리기(); }
+        });
+        line.appendChild(grp); line.appendChild(name); line.appendChild(qty); line.appendChild(del);
+        row.appendChild(line);
+        cat.appendChild(row);
+      });
+      var addc = document.createElement("button");
+      addc.type = "button"; addc.className = "equip-add"; addc.textContent = "+ 품목 더하기";
+      addc.addEventListener("click", function () {
+        자료.itemsCatalog.push({ group: "기타", name: "", qty: "" });
+        그리기();
+      });
+      cat.appendChild(addc);
+    }
+    document.getElementById("edit-save").addEventListener("click", function () {
+      if (!편집열쇠()) {
+        document.getElementById("edit-gate").hidden = false;
+        document.getElementById("edit-area").hidden = true;
+        return;
+      }
+      상태("", "저장 중…");
+      fetch(STORE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ editKey: 편집열쇠(), config: 자료 })
+      }).then(function (r) { return r.json(); }).then(function (res) {
+        if (res && res.ok) { 상태("ok", "저장됨 ✓ — 전 지점 진행판에 바로 반영됩니다."); return; }
+        if (res && res.error === "bad_edit_key") {
+          try { sessionStorage.removeItem("pxr-edit-key"); } catch (e) {}
+          document.getElementById("edit-gate").hidden = false;
+          document.getElementById("edit-area").hidden = true;
+          document.getElementById("edit-gate-err").textContent = "비밀번호가 맞지 않습니다 — 다시 입력해 주세요.";
+          상태("", "");
+          return;
+        }
+        if (res && res.error === "too_large") { 상태("err", "목록이 너무 큽니다 — 항목을 줄이고 다시 저장해 주세요."); return; }
+        상태("err", "저장하지 못했습니다 — 잠시 후 다시 눌러 주세요.");
+      }).catch(function () { 상태("err", "연결이 안 됩니다 — 잠시 후 다시 눌러 주세요."); });
+    });
+
+    fetchConfig().then(function (cfg) {
+      자료 = cfg ? JSON.parse(JSON.stringify(cfg)) : { sections: 기본SECTIONS정의(), itemsCatalog: [] };
+      if (!자료.itemsCatalog) 자료.itemsCatalog = [];
+      if (편집열쇠()) 문열기();
+      else if (!document.getElementById("edit-area").hidden) 그리기();
+    });
+  }
+  if (qs.get("edit") !== null) { 편집화면(); return; }
+
   if (!/^BR-\d{3}$/.test(BRANCH_CODE)) {
     // 뿌리·코드 꼴 아님 → 지점 고르기 (대표 지시 10/29). 코드가 틀린 채 왔으면 안내 한 줄도 같이.
     document.getElementById("gate").hidden = true;
@@ -664,16 +910,18 @@
   var STORE_KEY = "pixcera-open-" + BRANCH_CODE;   // 옛 지점별 페이지의 열쇠와 다름 — 기기 임시 보관만 쓰는 값, 정본은 공용 장부
   var PW_HASH = "e0f02bb13c5c4a3c07cd168028193e27a40f7c95dbc64ba4d56d0945ea51422d";
 
-  /* 지점별 항목 예외 — 코드가 아니라 자료 표(/항목예외.json)에서. 못 읽으면 기본 목록 그대로. */
-  fetch("/항목예외.json", { cache: "no-store" })
-    .then(function (r) { return r.json(); })
-    .catch(function () { return null; })
-    .then(function (ovj) { init((ovj && ovj.예외 && ovj.예외[BRANCH_CODE]) || null); });
+  /* 지점별 항목 예외(/항목예외.json) + 창구 목록 자료(?config) 를 같이 읽고 판을 그린다 */
+  Promise.all([
+    fetch("/항목예외.json", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return null; }),
+    fetchConfig()
+  ]).then(function (둘) {
+    init((둘[0] && 둘[0].예외 && 둘[0].예외[BRANCH_CODE]) || null, 둘[1]);
+  });
 
-  function init(OVER) {
-
-  /* ---------- 데이터 ---------- */
-  var SECTIONS = [
+  /* ---------- 데이터 — 박힌 기본 목록 (창구 목록 자료 ?config 가 서기 전 예비 · 편집 화면의 시작값) ---------- */
+  function 기본SECTIONS정의() { return [
     {
       id: "p90", dday: "D-90 ~ D-60", title: "터 잡기 — 법적·공간 준비",
       items: [
@@ -761,7 +1009,32 @@
         { id: "retro",   who: "hq",    name: "개원 준비 회고 — 이 목록 갱신", note: "" }
       ]
     }
-  ];
+  ]; }
+
+  /* 창구 목록 자료(?config) — 접점 v0: {ok,config:{sections,itemsCatalog},savedAt} · 없거나 꼴이 틀리면 null → 박힌 목록 */
+  function fetchConfig() {
+    return fetch(STORE_URL + "/?config", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return null; })
+      .then(function (res) {
+        var c = res && res.ok && res.config;
+        if (!c || Object.prototype.toString.call(c.sections) !== "[object Array]" || !c.sections.length) return null;
+        var 멀쩡 = c.sections.every(function (s) {
+          return s && s.id && s.title && Object.prototype.toString.call(s.items) === "[object Array]" &&
+            s.items.every(function (it) { return it && it.id && it.name; });
+        });
+        return 멀쩡 ? c : null;
+      });
+  }
+
+  function init(OVER, CONFIG) {
+
+  var SECTIONS = CONFIG ? CONFIG.sections : 기본SECTIONS정의();
+  /* 걷은(숨김) 항목은 판에 아예 안 그린다 — 자료에는 남아 편집 화면에서 되살리기 됨(접점 v0) */
+  SECTIONS = SECTIONS.map(function (sec) {
+    return { id: sec.id, dday: sec.dday, title: sec.title, chain: sec.chain,
+      items: sec.items.filter(function (it) { return !it.hidden; }) };
+  });
 
   if (OVER) {
     SECTIONS = SECTIONS.map(function (sec) {
@@ -806,8 +1079,6 @@
   function loadShipItems() { try { return JSON.parse(localStorage.getItem(ITEMS_KEY)) || []; } catch (e) { return []; } }
   function saveShipItems() { try { localStorage.setItem(ITEMS_KEY, JSON.stringify(shipItems)); } catch (e) {} }
   var shipItems = loadShipItems();   // 중요 품목 [{group,name,qty,order,due,status,memo}]
-  var ITEM_GROUPS = ["가구·집기", "간판·사인", "전산", "소모품", "인쇄물", "기타"];
-  var ITEM_STATUSES = ["발주 전", "발주함", "받음", "설치 끝"];
 
   /* 날짜 도우미 — 구간 끝 날짜가 기본 예정일(개원일 바꾸면 비운 예정일이 따라 움직임) */
   var 구간끝 = { p90: -60, p60: -30, p30: -7, p7: 0, pafter: 30 };

@@ -58,13 +58,21 @@ async function 가짜답(p, sid) {
   const 몸머리 = [{ name: "Content-Type", value: "application/json" }, { name: "Access-Control-Allow-Origin", value: "*" }];
   let 답;
   if (p.request.method === "POST") {
-    if (가짜.닫힘저장 || 가짜.state.closedAt) 답 = { ok: false, error: "closed", closedAt: 가짜.state.closedAt || new Date().toISOString() };
+    let j = {};
+    try { j = JSON.parse(p.request.postData || "{}"); } catch {}
+    if (j && (j.editKey !== undefined || (j.config && !j.branch))) {
+      // 목록 편집 저장(접점 v0) — 창구가 본사용 편집 비밀번호 지문으로 판정하는 꼴을 흉내
+      if (j.editKey === "편집키1122" && j.config) { 가짜.설정 = j.config; 답 = { ok: true, savedAt: new Date().toISOString() }; }
+      else 답 = { ok: false, error: "bad_edit_key" };
+    }
+    else if (가짜.닫힘저장 || 가짜.state.closedAt) 답 = { ok: false, error: "closed", closedAt: 가짜.state.closedAt || new Date().toISOString() };
     else {
-      try { const j = JSON.parse(p.request.postData || "{}"); Object.assign(가짜.state, j.state || {}); } catch {}
+      Object.assign(가짜.state, j.state || {});
       가짜.state.savedAt = new Date().toISOString();
       답 = { ok: true, state: 가짜.state };
     }
-  } else if (/[?&]list/.test(p.request.url)) 답 = 가짜.목록 ? { ok: true, branches: 가짜.목록, savedAt: new Date().toISOString() } : { ok: false, error: "bad_request" };
+  } else if (/[?&]config/.test(p.request.url)) 답 = { ok: true, config: 가짜.설정 || null, savedAt: new Date().toISOString() };
+  else if (/[?&]list/.test(p.request.url)) 답 = 가짜.목록 ? { ok: true, branches: 가짜.목록, savedAt: new Date().toISOString() } : { ok: false, error: "bad_request" };
   else 답 = { ok: true, state: 가짜.state };
   await 보내기("Fetch.fulfillRequest", { requestId: p.requestId, responseCode: 200, responseHeaders: 몸머리, body: Buffer.from(JSON.stringify(답)).toString("base64") }, sid);
 }
@@ -260,7 +268,54 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       검(/이번 주 할 일 6/.test(await 평가(`(document.querySelector("#home-list .home-sum") || {textContent:""}).textContent`)), "고르기 — 지점 숫자 한 줄", await 평가(`(document.querySelector("#home-list .home-sum") || {textContent:""}).textContent`));
       검(/기한 지남 2/.test(await 평가(`(document.querySelector("#home-list .home-sum .late") || {textContent:""}).textContent`)), "고르기 — 기한 지남 붉게");
       await 캡처("12-고르기숫자");
-      가짜.목록 = null; delete 가짜.state.summary;
+      delete 가짜.state.summary;
+
+      // ⑬ 목록 자료(?config) — 판이 창구 목록 자료로 그려짐 · 걷은 항목 숨김 · 기본 품목 불러오기 (접점 v0)
+      가짜.설정 = {
+        sections: [{ id: "p90", dday: "D-90 ~ D-60", title: "터 잡기", items: [
+          { id: "contract", who: "joint", name: "본사와 지점 계약(자료판)", note: "창구 목록 자료에서 온 글" },
+          { id: "budget", who: "branch", name: "개원 자금 계획표 작성", note: "", hidden: true }
+        ] }],
+        itemsCatalog: [{ group: "전산", name: "태블릿", qty: "4" }]
+      };
+      await 가기("/?branch=BR-003&name=" + encodeURIComponent("산본점"), /개원 로드맵/);
+      await 자기(1200); 콘솔모으기();
+      글 = await 글자();
+      검(/본사와 지점 계약\(자료판\)/.test(글), "목록 자료 — 판 글이 창구 자료에서");
+      검(await 평가(`!document.getElementById("item-budget")`), "목록 자료 — 걷은(숨김) 항목 안 보임");
+      검(/\d+ \/ 1 완료/.test(글), "목록 자료 — 항목 수가 자료대로", (글.match(/\d+ \/ \d+ 완료/) || [])[0]);
+      await 평가(`[...document.querySelectorAll("#sec-items .equip-add")].length ? document.querySelector("#sec-items > .equip-wrap > .equip-add, #sec-items .equip-wrap > button.equip-add").click() : null`);
+      await 자기(800);
+      검(await 평가(`[...document.querySelectorAll("#sec-items .eq-name")].some(i => i.value === "태블릿")`), "기본 품목 불러오기 — 창구 자료의 품목이 들어옴");
+      await 캡처("13-목록자료판");
+
+      // ⑭ 목록 편집 화면(/?edit) — 본사용 비밀번호 → 고침 → 저장 → 창구 판정
+      await 가기("/?edit", /본사용 편집 비밀번호/);
+      검(/준비 목록 편집/.test(await 글자()) && /본사용 편집 비밀번호/.test(await 글자()), "편집 — 문이 비밀번호를 물음");
+      await 평가(`document.getElementById("edit-pw").focus()`);
+      await 보내기("Input.insertText", { text: "편집키1122" }, S);
+      await 평가(`document.getElementById("edit-open").click()`);
+      await 자기(800); 콘솔모으기();
+      검(await 평가(`!document.getElementById("edit-area").hidden`), "편집 — 목록이 열림");
+      검(await 평가(`[...document.querySelectorAll("#edit-sections .e-name")].some(i => i.value.includes("자료판"))`), "편집 — 창구 자료가 시작값");
+      검(!/편집키1122/.test(await 글자()), "편집 — 비밀번호 값이 화면 글에 없음");
+      await 평가(`(() => { const i = [...document.querySelectorAll("#edit-sections .e-name")].find(x => x.value.includes("자료판")); i.value = "본사와 지점 계약(고친판)"; i.dispatchEvent(new Event("input",{bubbles:true})); })()`);
+      await 평가(`document.getElementById("edit-save").click()`);
+      for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.getElementById("edit-status").textContent`)); i++) await 자기(300);
+      검(/저장됨 ✓/.test(await 평가(`document.getElementById("edit-status").textContent`)), "편집 — 저장됨(창구 판정 통과)");
+      검(가짜.설정.sections[0].items[0].name === "본사와 지점 계약(고친판)", "편집 — 창구 자료가 통째로 바뀜", 가짜.설정.sections[0].items[0].name);
+      await 캡처("14-목록편집");
+      // 틀린 비밀번호 — 창구가 거절하고 문이 다시 선다
+      await 평가(`sessionStorage.setItem("pxr-edit-key", "9999")`);
+      await 평가(`document.getElementById("edit-save").click()`);
+      for (let i = 0; i < 20 && (await 평가(`document.getElementById("edit-gate").hidden`)); i++) await 자기(300);
+      검(await 평가(`!document.getElementById("edit-gate").hidden`), "편집 — 틀린 비밀번호면 문이 다시 섬");
+      검(/비밀번호가 맞지 않습니다/.test(await 평가(`document.getElementById("edit-gate-err").textContent`)), "편집 — 거절 안내 글");
+      // 고친 글이 판에 보임
+      await 가기("/?branch=BR-003&name=" + encodeURIComponent("산본점"), /개원 로드맵/);
+      await 자기(1000); 콘솔모으기();
+      검(/본사와 지점 계약\(고친판\)/.test(await 글자()), "편집 → 판 — 고친 글이 바로 보임");
+      가짜.설정 = null; 가짜.목록 = null;
     }
 
     콘솔모으기();
