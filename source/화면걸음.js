@@ -280,7 +280,7 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
           { id: "contract", who: "joint", name: "본사와 지점 계약(자료판)", note: "창구 목록 자료에서 온 글" },
           { id: "budget", who: "branch", name: "개원 자금 계획표 작성", note: "", hidden: true }
         ] }],
-        itemsCatalog: [{ group: "전산", name: "태블릿", qty: "4" }]
+        itemsCatalog: [{ group: "전산", name: "태블릿", qty: "4", lead: "1~2주" }]
       };
       await 가기("/?branch=BR-003&name=" + encodeURIComponent("산본점"), /개원 로드맵/);
       await 자기(1200); 콘솔모으기();
@@ -291,6 +291,7 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       await 평가(`[...document.querySelectorAll("#sec-items .equip-add")].length ? document.querySelector("#sec-items > .equip-wrap > .equip-add, #sec-items .equip-wrap > button.equip-add").click() : null`);
       await 자기(800);
       검(await 평가(`[...document.querySelectorAll("#sec-items .eq-name")].some(i => i.value === "태블릿")`), "기본 품목 불러오기 — 창구 자료의 품목이 들어옴");
+      검(await 평가(`[...document.querySelectorAll("#sec-items .eq-vendor")].some(i => i.value === "보통 1~2주")`), "기본 품목 불러오기 — 보통 걸리는 기간이 메모로 들어옴");
       await 캡처("13-목록자료판");
 
       // ⑭ 목록 편집 화면(/?edit) — 본사용 비밀번호 → 고침 → 저장 → 창구 판정
@@ -303,6 +304,7 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       검(await 평가(`!document.getElementById("edit-area").hidden`), "편집 — 목록이 열림");
       검(await 평가(`[...document.querySelectorAll("#edit-sections .e-name")].some(i => i.value.includes("자료판"))`), "편집 — 창구 자료가 시작값");
       검(!/편집키1122/.test(await 글자()), "편집 — 비밀번호 값이 화면 글에 없음");
+      검(!/초안이 채워져 있어요/.test(await 글자()), "편집 — 품목이 이미 있으면 초안 띠 없음");
       await 평가(`(() => { const i = [...document.querySelectorAll("#edit-sections .e-name")].find(x => x.value.includes("자료판")); i.value = "본사와 지점 계약(고친판)"; i.dispatchEvent(new Event("input",{bubbles:true})); })()`);
       await 평가(`document.getElementById("edit-save").click()`);
       for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.getElementById("edit-status").textContent`)); i++) await 자기(300);
@@ -319,6 +321,21 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       await 가기("/?branch=BR-003&name=" + encodeURIComponent("산본점"), /개원 로드맵/);
       await 자기(1000); 콘솔모으기();
       검(/본사와 지점 계약\(고친판\)/.test(await 글자()), "편집 → 판 — 고친 글이 바로 보임");
+
+      // ⑭-2 품목 초안 — 창구에 목록 자료가 없을 때 편집 화면에 본사 기본 목록 초안 46품목이 미리 채워짐 (총괄 11/15)
+      가짜.설정 = null;
+      await 평가(`sessionStorage.setItem("pxr-edit-key", "편집키1122")`);   // 판 페이지에서 미리 — 같은 자리라 편집 화면까지 남는다
+      await 가기("/?edit", /준비 목록 편집/);
+      await 자기(1200); 콘솔모으기();
+      검(await 평가(`!document.getElementById("edit-area").hidden`), "품목 초안 — 목록이 열림");
+      검(await 평가(`document.querySelectorAll("#edit-catalog .edit-row").length`) === 46, "품목 초안 — 46품목이 미리 채워짐", String(await 평가(`document.querySelectorAll("#edit-catalog .edit-row").length`)));
+      검(/초안이 채워져 있어요 — 저장하면 적용됩니다/.test(await 글자()), "품목 초안 — 안내 띠 한 줄");
+      검(await 평가(`[...document.querySelectorAll("#edit-catalog input[placeholder='보통 걸리는 기간']")].some(i => i.value === "4~6주")`), "품목 초안 — 보통 걸리는 기간 칸이 보이고 값이 참고 글로");
+      await 평가(`document.getElementById("edit-catalog").scrollIntoView()`); await 자기(300);
+      await 캡처("15-품목초안");
+      await 평가(`document.getElementById("edit-save").click()`);
+      for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.getElementById("edit-status").textContent`)); i++) await 자기(300);
+      검(!!(가짜.설정 && 가짜.설정.itemsCatalog) && 가짜.설정.itemsCatalog.length === 46 && 가짜.설정.itemsCatalog[0].lead === "4~6주", "품목 초안 — 저장하면 초안 46품목이 창구 자료로(기간 글 포함)", 가짜.설정 && 가짜.설정.itemsCatalog ? String(가짜.설정.itemsCatalog.length) : "없음");
       가짜.설정 = null; 가짜.목록 = null;
     }
 

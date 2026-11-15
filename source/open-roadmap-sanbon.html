@@ -608,6 +608,58 @@
   var 목록약속 = fetchBranchList();
   var ITEM_GROUPS = ["가구·집기", "간판·사인", "전산", "소모품", "인쇄물", "기타"];   // 중요 품목 묶음(판·편집 공용)
   var ITEM_STATUSES = ["발주 전", "발주함", "받음", "설치 끝"];
+  function 기본품목초안() {
+    // 중요 품목 본사 기본 목록 초안 46품목(대표 승인 11/15) — 편집 화면의 품목 목록이 비어 있을 때 미리 채우는 시작값.
+    // 저장 전에는 창구에 안 올라간다. lead = 보통 걸리는 기간(참고 글 — 지점 불러오기 때 메모로 들어감).
+    return [
+      { group: "가구·집기", name: "시술 베드", lead: "4~6주" },
+      { group: "가구·집기", name: "시술용 스툴 · 의사 의자", lead: "2~3주" },
+      { group: "가구·집기", name: "시술 카트 · 트롤리", lead: "2~3주" },
+      { group: "가구·집기", name: "상담실 책상과 의자", lead: "3~4주" },
+      { group: "가구·집기", name: "접수 데스크", lead: "4~6주 (맞춤 제작일 때)" },
+      { group: "가구·집기", name: "대기실 소파와 테이블", lead: "3~4주" },
+      { group: "가구·집기", name: "파우더룸 화장대 · 거울 · 드라이기", lead: "2~3주" },
+      { group: "가구·집기", name: "고객 사물함", lead: "3~4주" },
+      { group: "가구·집기", name: "직원 사물함 · 탈의실 집기", lead: "2~3주" },
+      { group: "가구·집기", name: "약품 냉장고", lead: "1~2주" },
+      { group: "가구·집기", name: "세탁기 · 건조기", lead: "1~2주" },
+      { group: "가구·집기", name: "정수기 · 커피 머신", lead: "1~2주" },
+      { group: "간판·사인", name: "외부 간판", lead: "3~4주 (구청 허가 포함)" },
+      { group: "간판·사인", name: "실내 로고 사인", lead: "2~3주" },
+      { group: "간판·사인", name: "층 안내 · 엘리베이터 사인", lead: "2주" },
+      { group: "간판·사인", name: "방 이름표 · 화장실 표지", lead: "1~2주" },
+      { group: "간판·사인", name: "진료 시간 · 휴진 안내판", lead: "1~2주" },
+      { group: "간판·사인", name: "창문 시트지", lead: "1~2주" },
+      { group: "전산", name: "인터넷 회선과 공유기", lead: "2~3주" },
+      { group: "전산", name: "접수 · 상담 · 진료실 PC와 모니터", lead: "1~2주" },
+      { group: "전산", name: "고객 도착 접수용 태블릿과 거치대", lead: "1~2주" },
+      { group: "전산", name: "시술실 태블릿", lead: "1~2주" },
+      { group: "전산", name: "카드 단말기", lead: "2~3주 (가맹 심사 포함)" },
+      { group: "전산", name: "영수증 프린터 · 라벨 프린터", lead: "1주" },
+      { group: "전산", name: "복합기", lead: "1~2주" },
+      { group: "전산", name: "전화 회선 · 대표 번호 · 전화기", lead: "2~3주" },
+      { group: "전산", name: "CCTV", lead: "2~3주" },
+      { group: "전산", name: "대기실 TV", lead: "1주" },
+      { group: "소모품", name: "소모품 첫 입고 (본사 표준 품목 묶음)", lead: "1~2주" },
+      { group: "소모품", name: "마취 크림 · 주사제 등 의약품 첫 발주", lead: "1~2주" },
+      { group: "소모품", name: "스킨부스터 · 필러 · 보톡스 첫 발주", lead: "1~2주" },
+      { group: "소모품", name: "일회용 시트 · 거즈 · 장갑 · 주사기", lead: "1주" },
+      { group: "소모품", name: "의료 폐기물 용기와 수거 계약", lead: "2주" },
+      { group: "소모품", name: "수건 · 가운 · 헤어밴드", lead: "1~2주" },
+      { group: "인쇄물", name: "명함", lead: "1주" },
+      { group: "인쇄물", name: "동의서 · 안내문 인쇄본", lead: "1주" },
+      { group: "인쇄물", name: "가격표 · 메뉴판", lead: "1~2주" },
+      { group: "인쇄물", name: "개원 안내 전단 · 배너 · 엑스배너", lead: "1~2주" },
+      { group: "인쇄물", name: "쇼핑백 · 봉투", lead: "2~3주" },
+      { group: "인쇄물", name: "개인정보 처리방침 · CCTV 안내문", lead: "1주" },
+      { group: "기타", name: "유니폼", lead: "2~3주" },
+      { group: "기타", name: "명찰", lead: "1주" },
+      { group: "기타", name: "소화기 · 비상 유도등 등 소방 물품", lead: "1~2주" },
+      { group: "기타", name: "구급함 · 응급 약품과 산소", lead: "1~2주" },
+      { group: "기타", name: "청소 용품과 청소 업체 계약", lead: "1~2주" },
+      { group: "기타", name: "개원 화환 받침 · 개원 기념품", lead: "2주" }
+    ];
+  }
 
   function 목록카드(b, 끝남) {
     var a = document.createElement("a");
@@ -688,6 +740,7 @@
     document.title = "픽세라 개원 로드맵 — 목록 편집";
     var 자료 = null;   // {sections, itemsCatalog} — 저장 단추가 통째로 올린다
     var 새번호 = 0;
+    var 품목초안띠 = false;   // 품목 목록이 비어 초안으로 미리 채웠을 때만 안내 띠
     function 상태(kind, 글) {
       var el = document.getElementById("edit-status");
       el.textContent = 글; el.className = kind || "";
@@ -793,6 +846,12 @@
       });
       var cat = document.getElementById("edit-catalog");
       cat.textContent = "";
+      if (품목초안띠) {
+        var 띠 = document.createElement("p");
+        띠.className = "edit-note"; 띠.style.margin = "0 0 8px"; 띠.style.color = "var(--accent, #6551D9)";
+        띠.textContent = "초안이 채워져 있어요 — 저장하면 적용됩니다.";
+        cat.appendChild(띠);
+      }
       자료.itemsCatalog.forEach(function (c) {
         var row = document.createElement("div"); row.className = "edit-row";
         var line = document.createElement("div"); line.className = "edit-line";
@@ -812,6 +871,10 @@
         qty.style.width = "70px"; qty.value = c.qty || ""; qty.placeholder = "수량";
         qty.setAttribute("aria-label", "수량");
         qty.addEventListener("input", function () { c.qty = qty.value; });
+        var lead = document.createElement("input");
+        lead.style.width = "150px"; lead.value = c.lead || ""; lead.placeholder = "보통 걸리는 기간";
+        lead.setAttribute("aria-label", "보통 걸리는 기간");
+        lead.addEventListener("input", function () { c.lead = lead.value; });
         var del = document.createElement("button");
         del.type = "button"; del.className = "edit-btn warn"; del.textContent = "✕";
         del.setAttribute("aria-label", "품목 빼기");
@@ -819,14 +882,14 @@
           var i = 자료.itemsCatalog.indexOf(c);
           if (i >= 0) { 자료.itemsCatalog.splice(i, 1); 그리기(); }
         });
-        line.appendChild(grp); line.appendChild(name); line.appendChild(qty); line.appendChild(del);
+        line.appendChild(grp); line.appendChild(name); line.appendChild(qty); line.appendChild(lead); line.appendChild(del);
         row.appendChild(line);
         cat.appendChild(row);
       });
       var addc = document.createElement("button");
       addc.type = "button"; addc.className = "equip-add"; addc.textContent = "+ 품목 더하기";
       addc.addEventListener("click", function () {
-        자료.itemsCatalog.push({ group: "기타", name: "", qty: "" });
+        자료.itemsCatalog.push({ group: "기타", name: "", qty: "", lead: "" });
         그리기();
       });
       cat.appendChild(addc);
@@ -860,6 +923,7 @@
     fetchConfig().then(function (cfg) {
       자료 = cfg ? JSON.parse(JSON.stringify(cfg)) : { sections: 기본SECTIONS정의(), itemsCatalog: [] };
       if (!자료.itemsCatalog) 자료.itemsCatalog = [];
+      if (!자료.itemsCatalog.length) { 자료.itemsCatalog = 기본품목초안(); 품목초안띠 = true; }   // 비어 있으면 초안 46품목 미리 채움(대표 11/15 — 저장해야 적용)
       if (편집열쇠()) 문열기();
       else if (!document.getElementById("edit-area").hidden) 그리기();
     });
@@ -1744,7 +1808,7 @@
         cat.forEach(function (c) {
           var g = ITEM_GROUPS.indexOf(c.group) >= 0 ? c.group : "기타";
           if (!shipItems.some(function (x) { return x.name === c.name && x.group === g; })) {
-            shipItems.push({ group: g, name: String(c.name || ""), qty: String(c.qty || ""), order: "", due: "", status: "발주 전", memo: "" });
+            shipItems.push({ group: g, name: String(c.name || ""), qty: String(c.qty || ""), order: "", due: "", status: "발주 전", memo: c.lead ? "보통 " + String(c.lead) : "" });
             더함++;
           }
         });
