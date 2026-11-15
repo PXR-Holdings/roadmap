@@ -337,6 +337,55 @@
     padding: 5px 12px; cursor: pointer; font-family: inherit;
   }
 
+  /* ---------- 이번 주 한눈에 띠 (목업 11/15) ---------- */
+  .week-band { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 12px; }
+  .week-band .wb { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; background: var(--bg); }
+  .week-band .wb .t { font-size: 12px; color: var(--muted); }
+  .week-band .wb b { display: block; font-size: 21px; line-height: 1.25; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .week-band .wb .s { font-size: 11.5px; color: var(--muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .week-band .wb.late { border-color: var(--danger); cursor: pointer; }
+  .week-band .wb.late b { color: var(--danger); }
+
+  /* ---------- 큰 달력 (목업 11/15) ---------- */
+  #calendar-card .cal-controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding: 12px 18px 10px; }
+  .cal-btn { font-family: inherit; font-size: 12.5px; font-weight: 700; padding: 4px 11px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+  .cal-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .cal-month { font-size: 15px; font-weight: 800; margin: 0 4px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+  .cal-grid .ch { background: var(--surface2); font-size: 11.5px; color: var(--muted); text-align: center; padding: 4px 0; border-bottom: 1px solid var(--line); }
+  .cal-grid .cd { min-height: 86px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 4px 5px; font-size: 11.5px; overflow: hidden; }
+  .cal-grid .cd:nth-child(7n) { border-right: 0; }
+  .cal-grid .cd .n { font-weight: 700; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
+  .cal-grid .cd.today { background: var(--accent-soft); }
+  .cal-grid .cd.openday { background: var(--accent); }
+  .cal-grid .cd.openday .n, .cal-grid .cd.openday .ev { color: #fff; }
+  .ev { display: block; border-radius: 5px; padding: 0 5px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 11px; cursor: pointer; background: var(--accent-soft); color: var(--ink); }
+  .ev.e-dev { background: var(--chip-joint); color: var(--chip-joint-ink); }
+  .ev.e-item { background: var(--lime); color: var(--lime-ink); }
+  .ev.e-late { background: var(--danger-soft); color: var(--danger); }
+  .ev.e-done { text-decoration: line-through; opacity: .6; }
+  .ev.e-more { background: none; color: var(--accent); font-weight: 700; }
+  .cal-grid .cd:not(.showall) .ev.hiddenev { display: none; }
+  .cal-list { padding: 4px 18px 14px; }
+  .cal-list .cl { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--line); align-items: baseline; }
+  .cal-list .cl .d { font-weight: 800; font-size: 12.5px; color: var(--accent); flex: none; width: 46px; font-variant-numeric: tabular-nums; }
+  .cal-legend { padding: 8px 18px 14px; font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+  .cal-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+
+  /* ---------- 할 일 예정일 칸 (목업 11/15) ---------- */
+  .plan-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px; font-size: 12px; color: var(--muted); }
+  .plan-line input[type="date"] { font-family: inherit; font-size: 12px; padding: 3px 6px;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); }
+  .plan-def { opacity: .65; }
+  .plan-late { color: var(--danger); font-weight: 700; }
+  .eq-warn-tag { font-size: 11.5px; font-weight: 700; border-radius: 99px; padding: 1px 8px; white-space: nowrap; }
+  .eq-warn-tag.soon { background: var(--warn-soft); color: var(--warn); }
+  .eq-warn-tag.late { background: var(--danger-soft); color: var(--danger); }
+  .home-sum { display: block; flex-basis: 100%; font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .home-sum .late { color: var(--danger); font-weight: 800; }
+
   #board { display: none; }
 
   /* ---------- 뿌리 지점 고르기 (10/29) ---------- */
@@ -406,6 +455,13 @@
       <!-- 보관 띠 자리(개원 완료 「막고 보관」) — 창구 계약 close/closed/reopen 등재(서버 방) 뒤 끼움 -->
       <div id="closed-banner" class="dday" hidden></div>
       <div id="dday-banner" class="dday" hidden></div>
+      <!-- 이번 주 한눈에 (목업 11/15) — 개원까지 · 이번 주 할 일 · 이번 주 납품 · 기한 지남 -->
+      <div class="week-band" id="week-band" hidden>
+        <div class="wb"><span class="t">개원까지</span><b id="wb-dday">—</b><span class="s" id="wb-open"></span></div>
+        <div class="wb"><span class="t">이번 주 할 일</span><b id="wb-week">0</b><span class="s" id="wb-week-s"></span></div>
+        <div class="wb"><span class="t">이번 주 납품</span><b id="wb-ship">0</b><span class="s" id="wb-ship-s"></span></div>
+        <div class="wb" id="wb-late-box"><span class="t">기한 지남</span><b id="wb-late">0</b><span class="s" id="wb-late-s"></span></div>
+      </div>
       <div class="legend">
         <span class="chip branch">🏠 지점</span>
         <span class="chip hq">🏢 본사</span>
@@ -416,6 +472,23 @@
       </div>
     </div>
   </header>
+
+  <!-- 큰 달력 (목업 11/15) — 할 일·장비 납품·중요 품목 납품이 한 곳에. 좁은 화면은 날짜 순 목록 -->
+  <section class="period" id="calendar-card">
+    <div class="cal-controls">
+      <button type="button" class="cal-btn" id="cal-prev" aria-label="전달">‹</button>
+      <span class="cal-month" id="cal-month"></span>
+      <button type="button" class="cal-btn" id="cal-next" aria-label="다음달">›</button>
+      <span style="flex:1"></span>
+      <button type="button" class="cal-btn cal-filter on" data-f="all">전부</button>
+      <button type="button" class="cal-btn cal-filter" data-f="task">할 일</button>
+      <button type="button" class="cal-btn cal-filter" data-f="dev">장비</button>
+      <button type="button" class="cal-btn cal-filter" data-f="item">중요 품목</button>
+      <button type="button" class="cal-btn cal-filter" data-f="late">기한 지남만</button>
+    </div>
+    <div id="cal-body"></div>
+    <div class="cal-legend"><span><i style="background:var(--accent-soft)"></i>할 일</span><span><i style="background:var(--chip-joint)"></i>장비 납품</span><span><i style="background:var(--lime)"></i>중요 품목 납품</span><span><i style="background:var(--danger-soft)"></i>기한 지남 · 늦음</span><span>줄 그은 글 = 끝남</span></div>
+  </section>
 
   <div id="sections"></div>
 
@@ -508,6 +581,39 @@
       holder.appendChild(h);
       끝.forEach(function (b) { holder.appendChild(목록카드(b, true)); });
     }
+    고르기숫자달기(열린);
+  }
+  /* 지점마다 「D-n · 할 일 · 납품 · 지남」 한 줄 (목업 11/15) — 판이 저장해 둔 요약을 읽는다.
+     비밀번호를 아직 안 푼 기기에서는 생략(장부 읽기에 열쇠가 필요). */
+  function 고르기숫자달기(열린) {
+    var key = "";
+    try { key = sessionStorage.getItem("pxr-gate-key") || ""; } catch (e) {}
+    if (!key) return;
+    열린.forEach(function (b) {
+      fetch(STORE_URL + "?branch=" + b.code + "&key=" + encodeURIComponent(key))
+        .then(function (r) { return r.json(); })
+        .catch(function () { return null; })
+        .then(function (res) {
+          var s = res && res.ok && res.state && res.state.summary;
+          if (!s) return;
+          var a = document.querySelector('#home-list a.card[href*="branch=' + b.code + '"], #home-list a.card[href*="' + b.code + '"]');
+          if (!a) return;
+          var line = document.createElement("span");
+          line.className = "home-sum";
+          var 글 = [];
+          if (s.dday) 글.push(s.dday);
+          글.push("이번 주 할 일 " + (s.week || 0));
+          글.push("납품 " + (s.ship || 0));
+          line.textContent = 글.join(" · ");
+          if (s.late > 0) {
+            var late = document.createElement("span");
+            late.className = "late";
+            late.textContent = " · 기한 지남 " + s.late;
+            line.appendChild(late);
+          }
+          a.appendChild(line);
+        });
+    });
   }
 
   if (!/^BR-\d{3}$/.test(BRANCH_CODE)) {
@@ -671,6 +777,36 @@
   }
   var state = loadState();
 
+  /* ---------- 할 일 예정일 · 중요 품목 (목업 11/15, 대표 「나머지도 다 네 제안대로」) ---------- */
+  var PLAN_KEY = STORE_KEY + "-plan";
+  function loadPlan() { try { return JSON.parse(localStorage.getItem(PLAN_KEY)) || {}; } catch (e) { return {}; } }
+  function savePlan() { try { localStorage.setItem(PLAN_KEY, JSON.stringify(plan)); } catch (e) {} }
+  var plan = loadPlan();   // {항목열쇠: "YYYY-MM-DD"} — 비우면 구간 끝 날짜가 기본
+  var ITEMS_KEY = STORE_KEY + "-items";
+  function loadShipItems() { try { return JSON.parse(localStorage.getItem(ITEMS_KEY)) || []; } catch (e) { return []; } }
+  function saveShipItems() { try { localStorage.setItem(ITEMS_KEY, JSON.stringify(shipItems)); } catch (e) {} }
+  var shipItems = loadShipItems();   // 중요 품목 [{group,name,qty,order,due,status,memo}]
+  var ITEM_GROUPS = ["가구·집기", "간판·사인", "전산", "소모품", "인쇄물", "기타"];
+  var ITEM_STATUSES = ["발주 전", "발주함", "받음", "설치 끝"];
+
+  /* 날짜 도우미 — 구간 끝 날짜가 기본 예정일(개원일 바꾸면 비운 예정일이 따라 움직임) */
+  var 구간끝 = { p90: -60, p60: -30, p30: -7, p7: 0, pafter: 30 };
+  var 항목구간 = {};   // 항목열쇠 → 구간(SECTIONS 그릴 때 채움)
+  function 날짜값(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ""); return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null; }
+  function 날짜글(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function 오늘0() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+  function 월일(iso) { var d = 날짜값(iso); return d ? (d.getMonth() + 1) + "/" + d.getDate() : ""; }
+  function 기준개원일() { return 장부개원일 || opendate || ""; }
+  function 기본예정일(secId) {
+    var base = 날짜값(기준개원일());
+    if (!base || !(secId in 구간끝)) return "";
+    var d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + 구간끝[secId]);
+    return 날짜글(d);
+  }
+  function 실예정일(itemId) { return plan[itemId] || 기본예정일(항목구간[itemId]); }
+  function 지났나(iso) { var d = 날짜값(iso); return !!d && d < 오늘0(); }
+  function 받음끝(status) { return status === "입고 완료" || status === "받음" || status === "설치 끝"; }
+
   /* ---------- 비밀번호 문 ---------- */
   /* 순수 JS SHA-256 — 보안 연결(https)이 아닌 환경에서 crypto.subtle이 없을 때 예비용 */
   function sha256js(text) {
@@ -779,6 +915,7 @@
     ul.className = "items";
 
     sec.items.forEach(function (item) {
+      항목구간[item.id] = sec.id;
       var li = document.createElement("li");
       li.className = "item" + (item.retired ? " retired" : "");
       li.id = "item-" + item.id;
@@ -798,7 +935,10 @@
             (item.note ? '<div class="item-note">' + item.note + "</div>" : "") +
             '<div class="item-date" id="date-' + item.id + '"></div>' +
           "</div>" +
-        "</label>";
+        "</label>" +
+        (item.retired ? "" :
+          '<div class="plan-line" style="padding:0 18px 10px 53px">예정일 <input type="date" class="plan-date" data-plan="' + item.id + '" aria-label="예정일">' +
+          '<span class="plan-def" id="plandef-' + item.id + '"></span></div>');
       ul.appendChild(li);
     });
     section.appendChild(ul);
@@ -858,11 +998,44 @@
     scheduleSync();
   });
 
+  /* 예정일 입력(목업 11/15) — 비우면 구간 끝 기본으로 돌아간다 */
+  sectionsEl.addEventListener("input", function (ev) {
+    var el = ev.target;
+    if (!el.matches || !el.matches("input.plan-date")) return;
+    var id = el.getAttribute("data-plan");
+    if (el.value) plan[id] = el.value; else delete plan[id];
+    savePlan(); scheduleSync();
+  });
+  function 예정일그리기() {
+    SECTIONS.forEach(function (sec) {
+      sec.items.forEach(function (item) {
+        if (item.retired) return;
+        var input = document.querySelector('input.plan-date[data-plan="' + item.id + '"]');
+        var def = document.getElementById("plandef-" + item.id);
+        if (!input || !def) return;
+        if (input.value !== (plan[item.id] || "")) input.value = plan[item.id] || "";
+        var 기본 = 기본예정일(sec.id);
+        var eff = plan[item.id] || 기본;
+        var 글 = plan[item.id] ? "" : (기본 ? "기본 " + 월일(기본) : "");
+        def.textContent = 글;
+        var 늦음 = !state[item.id] && eff && 지났나(eff);
+        var old = document.getElementById("planlate-" + item.id);
+        if (old) old.remove();
+        if (늦음) {
+          var tag = document.createElement("span");
+          tag.className = "plan-late"; tag.id = "planlate-" + item.id;
+          tag.textContent = Math.round((오늘0() - 날짜값(eff)) / 86400000) + "일 지남";
+          def.parentNode.appendChild(tag);
+        }
+      });
+    });
+  }
+
   refresh();
 
   /* ---------- 장비 목록 (의료기기 발주 항목 전용) ---------- */
   var EQUIP_KEY = STORE_KEY + "-equip";
-  var EQUIP_STATUSES = ["검토 중", "발주 완료", "입고 완료"];
+  var EQUIP_STATUSES = ["검토 중", "발주 완료", "입고 완료", "설치 끝"];   // 「설치 끝」은 목업 11/15 — 기존 저장값 세 가지는 그대로 읽힌다
   function loadEquip() {
     try { return JSON.parse(localStorage.getItem(EQUIP_KEY)) || []; }
     catch (e) { return []; }
@@ -986,9 +1159,24 @@
     handle.addEventListener("pointercancel", endDrag);
   }
 
+  /* 납품 경고(목업 11/15): 안 받았는데 예정일이 지남 = 빨강 「늦음」 · 개원 7일 안쪽 = 노랑 */
+  function 납품경고딱지(due, status) {
+    if (!due || 받음끝(status)) return null;
+    var tag = null;
+    if (지났나(due)) { tag = document.createElement("span"); tag.className = "eq-warn-tag late"; tag.textContent = "늦음"; }
+    else {
+      var open = 날짜값(기준개원일());
+      if (open && 날짜값(due) > new Date(open.getFullYear(), open.getMonth(), open.getDate() - 7)) {
+        tag = document.createElement("span"); tag.className = "eq-warn-tag soon"; tag.textContent = "개원 7일 안쪽";
+      }
+    }
+    return tag;
+  }
+
   function buildEquipRow(eq, idx) {
     var row = document.createElement("div"); row.className = "equip-row";
     row.setAttribute("data-idx", idx);
+    row.id = "eqrow-" + idx;
     var l1 = document.createElement("div"); l1.className = "equip-line";
     var handle = document.createElement("span");
     handle.className = "eq-handle"; handle.textContent = "⠿";
@@ -1042,9 +1230,9 @@
       saveEquip(); scheduleSync(); renderTotals();
     });
     var dueLabel = document.createElement("span");
-    dueLabel.className = "eq-label"; dueLabel.textContent = "납기";
+    dueLabel.className = "eq-label"; dueLabel.textContent = "납품 예정";
     var due = mkEqInput("eq-due", "", eq.due);
-    due.type = "date"; due.setAttribute("aria-label", "납기 예정일");
+    due.type = "date"; due.setAttribute("aria-label", "납품 예정일");
     due.addEventListener("input", function () { eq.due = due.value; saveEquip(); scheduleSync(); });
     var status = document.createElement("select");
     status.className = "eq-status"; status.setAttribute("aria-label", "상태");
@@ -1052,14 +1240,37 @@
       var o = document.createElement("option"); o.value = s; o.textContent = s;
       status.appendChild(o);
     });
-    status.value = eq.status || "검토 중";
+    status.value = EQUIP_STATUSES.indexOf(eq.status) >= 0 ? eq.status : "검토 중";
     status.addEventListener("change", function () {
       eq.status = status.value; saveEquip(); scheduleSync(); updateEquipHeader();
     });
     l2.appendChild(cat); l2.appendChild(vendor); l2.appendChild(price);
     l2.appendChild(dueLabel); l2.appendChild(due); l2.appendChild(status);
 
-    row.appendChild(l1); row.appendChild(l2);
+    /* 발주일·설치·검수일 (목업 11/15 — 납품 예정일 칸은 그대로 이어 씀) */
+    var l3 = document.createElement("div"); l3.className = "equip-line";
+    var orderLabel = document.createElement("span");
+    orderLabel.className = "eq-label"; orderLabel.textContent = "발주일";
+    var order = mkEqInput("eq-due", "", eq.order);
+    order.type = "date"; order.setAttribute("aria-label", "발주일");
+    order.addEventListener("input", function () { eq.order = order.value; saveEquip(); scheduleSync(); });
+    var instLabel = document.createElement("span");
+    instLabel.className = "eq-label"; instLabel.textContent = "설치·검수일";
+    var inst = mkEqInput("eq-due", "", eq.install);
+    inst.type = "date"; inst.setAttribute("aria-label", "설치·검수일");
+    inst.addEventListener("input", function () { eq.install = inst.value; saveEquip(); scheduleSync(); });
+    l3.appendChild(orderLabel); l3.appendChild(order); l3.appendChild(instLabel); l3.appendChild(inst);
+    function 경고다시() {
+      var old = l3.querySelector(".eq-warn-tag");
+      if (old) old.remove();
+      var t = 납품경고딱지(eq.due, eq.status);
+      if (t) l3.appendChild(t);
+    }
+    경고다시();
+    due.addEventListener("input", 경고다시);
+    status.addEventListener("change", 경고다시);
+
+    row.appendChild(l1); row.appendChild(l2); row.appendChild(l3);
     return row;
   }
 
@@ -1149,6 +1360,321 @@
     li.appendChild(wrap);
     renderEquip();
   })();
+
+  /* ---------- 납품 목록 — 중요 품목 (목업 11/15, 새) — 장비가 아닌데 날짜가 중요한 것 ---------- */
+  function 품목알림(글) {
+    var el = document.getElementById("items-note");
+    if (el) el.textContent = 글 || "";
+  }
+  function buildShipRow(it, idx) {
+    var row = document.createElement("div"); row.className = "equip-row";
+    row.id = "itrow-" + idx;
+    var l1 = document.createElement("div"); l1.className = "equip-line";
+    var name = mkEqInput("eq-name", "품목", it.name);
+    name.addEventListener("input", function () { it.name = name.value; saveShipItems(); scheduleSync(); });
+    var qty = mkEqInput("eq-qty", "수량", it.qty);
+    qty.setAttribute("aria-label", "수량");
+    qty.addEventListener("input", function () { it.qty = qty.value; saveShipItems(); scheduleSync(); });
+    var del = document.createElement("button");
+    del.type = "button"; del.className = "eq-del"; del.textContent = "✕";
+    del.setAttribute("aria-label", "품목 삭제");
+    del.addEventListener("click", function () {
+      var i = shipItems.indexOf(it);
+      if (i >= 0) shipItems.splice(i, 1);
+      saveShipItems(); scheduleSync(); renderItems();
+    });
+    l1.appendChild(name); l1.appendChild(qty); l1.appendChild(del);
+    function 경고다시() {
+      var old = l1.querySelector(".eq-warn-tag");
+      if (old) old.remove();
+      var t = 납품경고딱지(it.due, it.status);
+      if (t) l1.appendChild(t);
+    }
+    경고다시();
+
+    var l2 = document.createElement("div"); l2.className = "equip-line";
+    var grp = document.createElement("select");
+    grp.className = "eq-cat"; grp.setAttribute("aria-label", "묶음");
+    ITEM_GROUPS.forEach(function (g) {
+      var o = document.createElement("option"); o.value = g; o.textContent = g;
+      grp.appendChild(o);
+    });
+    grp.value = ITEM_GROUPS.indexOf(it.group) >= 0 ? it.group : "기타";
+    grp.addEventListener("change", function () { it.group = grp.value; saveShipItems(); scheduleSync(); renderItems(); });
+    var orderLabel = document.createElement("span");
+    orderLabel.className = "eq-label"; orderLabel.textContent = "발주일";
+    var order = mkEqInput("eq-due", "", it.order);
+    order.type = "date"; order.setAttribute("aria-label", "발주일");
+    order.addEventListener("input", function () { it.order = order.value; saveShipItems(); scheduleSync(); });
+    var dueLabel = document.createElement("span");
+    dueLabel.className = "eq-label"; dueLabel.textContent = "납품 예정";
+    var due = mkEqInput("eq-due", "", it.due);
+    due.type = "date"; due.setAttribute("aria-label", "납품 예정일");
+    due.addEventListener("input", function () { it.due = due.value; saveShipItems(); scheduleSync(); 경고다시(); });
+    var status = document.createElement("select");
+    status.className = "eq-status"; status.setAttribute("aria-label", "상태");
+    ITEM_STATUSES.forEach(function (s) {
+      var o = document.createElement("option"); o.value = s; o.textContent = s;
+      status.appendChild(o);
+    });
+    status.value = ITEM_STATUSES.indexOf(it.status) >= 0 ? it.status : "발주 전";
+    status.addEventListener("change", function () { it.status = status.value; saveShipItems(); scheduleSync(); renderItems(); });
+    var memo = mkEqInput("eq-vendor", "업체 · 메모", it.memo);
+    memo.addEventListener("input", function () { it.memo = memo.value; saveShipItems(); scheduleSync(); });
+    l2.appendChild(grp); l2.appendChild(orderLabel); l2.appendChild(order);
+    l2.appendChild(dueLabel); l2.appendChild(due); l2.appendChild(status); l2.appendChild(memo);
+
+    row.appendChild(l1); row.appendChild(l2);
+    return row;
+  }
+  function renderItems() {
+    var box = document.getElementById("items-box");
+    if (!box) return;
+    box.textContent = "";
+    ITEM_GROUPS.forEach(function (g) {
+      var group = document.createElement("div");
+      group.className = "equip-group";
+      var head = document.createElement("div");
+      head.className = "equip-group-head";
+      var label = document.createElement("span"); label.textContent = g;
+      head.appendChild(label);
+      group.appendChild(head);
+      shipItems.forEach(function (it, idx) {
+        if ((ITEM_GROUPS.indexOf(it.group) >= 0 ? it.group : "기타") === g) group.appendChild(buildShipRow(it, idx));
+      });
+      var add = document.createElement("button");
+      add.type = "button"; add.className = "equip-add"; add.textContent = "+ 품목 더하기";
+      add.addEventListener("click", function () {
+        shipItems.push({ group: g, name: "", qty: "", order: "", due: "", status: "발주 전", memo: "" });
+        saveShipItems(); scheduleSync(); renderItems();
+      });
+      group.appendChild(add);
+      box.appendChild(group);
+    });
+    var count = document.getElementById("items-count");
+    if (count) {
+      var 받은 = shipItems.filter(function (x) { return 받음끝(x.status); }).length;
+      count.textContent = shipItems.length ? shipItems.length + "개 · 받음 " + 받은 : "";
+    }
+  }
+  function 기본목록불러오기() {
+    품목알림("본사 기본 목록 확인 중…");
+    fetch(STORE_URL + "/?config", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return null; })
+      .then(function (res) {
+        var cat = res && res.ok && res.config && res.config.itemsCatalog;
+        if (!cat || !cat.length) { 품목알림("본사 기본 목록이 아직 없습니다 — 본사가 목록을 저장하면 여기로 불러올 수 있습니다."); return; }
+        var 더함 = 0;
+        cat.forEach(function (c) {
+          var g = ITEM_GROUPS.indexOf(c.group) >= 0 ? c.group : "기타";
+          if (!shipItems.some(function (x) { return x.name === c.name && x.group === g; })) {
+            shipItems.push({ group: g, name: String(c.name || ""), qty: String(c.qty || ""), order: "", due: "", status: "발주 전", memo: "" });
+            더함++;
+          }
+        });
+        saveShipItems(); scheduleSync(); renderItems();
+        품목알림(더함 ? "본사 기본 목록에서 " + 더함 + "개 품목을 더했습니다 — 날짜만 채우면 됩니다." : "본사 기본 목록 품목이 이미 전부 들어 있습니다.");
+      });
+  }
+  (function initItems() {
+    var section = document.createElement("section");
+    section.className = "period"; section.id = "sec-items";
+    var head = document.createElement("div");
+    head.className = "period-head";
+    head.innerHTML = '<span class="period-dday">납품</span>' +
+      '<h2 class="period-title">중요 품목 — 장비가 아닌데 날짜가 중요한 것</h2>' +
+      '<span class="period-count" id="items-count"></span>';
+    section.appendChild(head);
+    var wrap = document.createElement("div");
+    wrap.className = "equip-wrap"; wrap.style.padding = "12px 18px 14px";
+    var catBtn = document.createElement("button");
+    catBtn.type = "button"; catBtn.className = "equip-add"; catBtn.style.marginTop = "0";
+    catBtn.textContent = "본사 기본 목록 불러오기";
+    catBtn.addEventListener("click", 기본목록불러오기);
+    var note = document.createElement("div");
+    note.className = "item-note"; note.id = "items-note"; note.style.margin = "6px 0 0";
+    var box = document.createElement("div");
+    box.className = "equip-box"; box.id = "items-box"; box.style.marginTop = "10px";
+    wrap.appendChild(catBtn); wrap.appendChild(note); wrap.appendChild(box);
+    section.appendChild(wrap);
+    sectionsEl.appendChild(section);
+    renderItems();
+  })();
+
+  /* ---------- 이번 주 한눈에 띠 + 큰 달력 (목업 11/15) ---------- */
+  function 사건모으기() {
+    var evs = [];
+    SECTIONS.forEach(function (sec) {
+      sec.items.forEach(function (it) {
+        if (it.retired) return;
+        var eff = plan[it.id] || 기본예정일(sec.id);
+        if (!eff) return;
+        var done = !!state[it.id];
+        evs.push({ date: eff, label: it.name, type: "task", done: done, late: !done && 지났나(eff), target: "item-" + it.id });
+      });
+    });
+    equip.forEach(function (eq, i) {
+      var done = 받음끝(eq.status);
+      if (eq.due) evs.push({ date: eq.due, label: (eq.name || "장비") + " 납품", type: "dev", done: done, late: !done && 지났나(eq.due), target: "eqrow-" + i });
+      if (eq.install) evs.push({ date: eq.install, label: (eq.name || "장비") + " 설치·검수", type: "dev", done: eq.status === "설치 끝", late: eq.status !== "설치 끝" && 지났나(eq.install), target: "eqrow-" + i });
+    });
+    shipItems.forEach(function (it, i) {
+      var done = 받음끝(it.status);
+      if (it.due) evs.push({ date: it.due, label: (it.name || "품목") + " 납품", type: "item", done: done, late: !done && 지났나(it.due), target: "itrow-" + i });
+    });
+    return evs;
+  }
+  function 요약계산() {
+    var evs = 사건모으기();
+    var t0 = 오늘0(), t6 = new Date(t0.getFullYear(), t0.getMonth(), t0.getDate() + 6);
+    function 주간(e) { var d = 날짜값(e.date); return d && d >= t0 && d <= t6; }
+    var week = evs.filter(function (e) { return e.type === "task" && !e.done && 주간(e); });
+    var ship = evs.filter(function (e) { return e.type !== "task" && !e.done && 주간(e); });
+    var late = evs.filter(function (e) { return e.late; });
+    return { dday: ddayText(기준개원일()) || "", open: 기준개원일(), week: week.length, weekNames: week.slice(0, 2).map(function (e) { return e.label; }),
+      ship: ship.length, shipNames: ship.slice(0, 2).map(function (e) { return e.label; }),
+      late: late.length, lateNames: late.slice(0, 2).map(function (e) { return e.label; }), at: new Date().toISOString() };
+  }
+  function 띠그리기() {
+    var band = document.getElementById("week-band");
+    if (!band) return;
+    var s = 요약계산();
+    band.hidden = false;
+    document.getElementById("wb-dday").textContent = s.dday || "—";
+    var od = 날짜값(s.open);
+    document.getElementById("wb-open").textContent = od ? (od.getMonth() + 1) + "월 " + od.getDate() + "일" : "개원일을 넣으면 계산됩니다";
+    document.getElementById("wb-week").textContent = s.week;
+    document.getElementById("wb-week-s").textContent = s.weekNames.join(" · ");
+    document.getElementById("wb-ship").textContent = s.ship;
+    document.getElementById("wb-ship-s").textContent = s.shipNames.join(" · ");
+    document.getElementById("wb-late").textContent = s.late;
+    document.getElementById("wb-late-s").textContent = s.lateNames.join(" · ");
+    document.getElementById("wb-late-box").classList.toggle("late", s.late > 0);
+  }
+  document.getElementById("wb-late-box").addEventListener("click", function () {
+    var first = 사건모으기().filter(function (e) { return e.late; })
+      .sort(function (a, b) { return a.date < b.date ? -1 : 1; })[0];
+    if (!first) return;
+    var el = document.getElementById(first.target);
+    if (el) {
+      var li = el.closest ? el.closest("li.item") : null;
+      if (li) { /* 장비 줄이면 서랍을 먼저 연다 */ }
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  });
+
+  var 달력월 = (function () { var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); })();
+  var 달력거름 = "all";
+  function 사건보이나(e) {
+    if (달력거름 === "all") return true;
+    if (달력거름 === "late") return e.late;
+    return e.type === 달력거름;
+  }
+  function 사건칸(e) {
+    var sp = document.createElement("span");
+    sp.className = "ev" + (e.type === "dev" ? " e-dev" : e.type === "item" ? " e-item" : "") + (e.late ? " e-late" : "") + (e.done ? " e-done" : "");
+    sp.textContent = e.label;
+    sp.title = e.label;
+    sp.addEventListener("click", function (ev2) {
+      ev2.stopPropagation();
+      var el = document.getElementById(e.target);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    return sp;
+  }
+  function 달력그리기() {
+    var body = document.getElementById("cal-body");
+    if (!body) return;
+    var y = 달력월.getFullYear(), m = 달력월.getMonth();
+    document.getElementById("cal-month").textContent = y + "년 " + (m + 1) + "월";
+    var evs = 사건모으기().filter(사건보이나).filter(function (e) {
+      var d = 날짜값(e.date); return d && d.getFullYear() === y && d.getMonth() === m;
+    });
+    var map = {};
+    evs.forEach(function (e) { (map[e.date] = map[e.date] || []).push(e); });
+    var openIso = 기준개원일();
+    var todayIso = 날짜글(오늘0());
+    body.textContent = "";
+    var 좁음 = (window.innerWidth || document.documentElement.clientWidth || 1024) < 720;
+    if (좁음) {
+      /* 좁은 화면 = 날짜 순 목록(옆으로 밀지 않음) */
+      var list = document.createElement("div"); list.className = "cal-list";
+      var keys = Object.keys(map).sort();
+      if (날짜값(openIso) && 날짜값(openIso).getFullYear() === y && 날짜값(openIso).getMonth() === m && keys.indexOf(openIso) < 0) { keys.push(openIso); keys.sort(); }
+      if (!keys.length) {
+        var none = document.createElement("div"); none.className = "item-note";
+        none.textContent = "이 달에는 표시할 일정이 없습니다.";
+        list.appendChild(none);
+      }
+      keys.forEach(function (k) {
+        var cl = document.createElement("div"); cl.className = "cl";
+        var dd = document.createElement("span"); dd.className = "d"; dd.textContent = 월일(k);
+        cl.appendChild(dd);
+        var holder = document.createElement("div");
+        if (k === openIso) {
+          var op = document.createElement("span"); op.className = "ev"; op.style.fontWeight = "800"; op.textContent = "개원일";
+          holder.appendChild(op);
+        }
+        (map[k] || []).forEach(function (e) { holder.appendChild(사건칸(e)); });
+        cl.appendChild(holder);
+        list.appendChild(cl);
+      });
+      body.appendChild(list);
+      return;
+    }
+    var grid = document.createElement("div"); grid.className = "cal-grid";
+    ["일", "월", "화", "수", "목", "금", "토"].forEach(function (h) {
+      var ch = document.createElement("div"); ch.className = "ch"; ch.textContent = h;
+      grid.appendChild(ch);
+    });
+    var 첫요일 = new Date(y, m, 1).getDay();
+    var 말일 = new Date(y, m + 1, 0).getDate();
+    for (var b = 0; b < 첫요일; b++) { var pad = document.createElement("div"); pad.className = "cd"; grid.appendChild(pad); }
+    for (var day = 1; day <= 말일; day++) {
+      var iso = 날짜글(new Date(y, m, day));
+      var cd = document.createElement("div"); cd.className = "cd";
+      if (iso === todayIso) cd.classList.add("today");
+      if (iso === openIso) cd.classList.add("openday");
+      var n = document.createElement("div"); n.className = "n";
+      n.innerHTML = "<span>" + day + "</span>" + (iso === openIso ? "<span>개원</span>" : iso === todayIso ? "<span>오늘</span>" : "");
+      cd.appendChild(n);
+      var dayEvs = map[iso] || [];
+      dayEvs.forEach(function (e, i) {
+        var sp = 사건칸(e);
+        if (i >= 3) sp.classList.add("hiddenev");
+        cd.appendChild(sp);
+      });
+      if (dayEvs.length > 3) {
+        (function (cell, extra) {
+          var more = document.createElement("span");
+          more.className = "ev e-more"; more.textContent = "+" + extra + "개 더";
+          more.addEventListener("click", function (ev2) { ev2.stopPropagation(); cell.classList.add("showall"); more.remove(); });
+          cell.appendChild(more);
+        })(cd, dayEvs.length - 3);
+      }
+      grid.appendChild(cd);
+    }
+    var 꼬리 = (첫요일 + 말일) % 7;
+    if (꼬리) for (var t = 꼬리; t < 7; t++) { var pad2 = document.createElement("div"); pad2.className = "cd"; grid.appendChild(pad2); }
+    body.appendChild(grid);
+  }
+  document.getElementById("cal-prev").addEventListener("click", function () { 달력월 = new Date(달력월.getFullYear(), 달력월.getMonth() - 1, 1); 달력그리기(); });
+  document.getElementById("cal-next").addEventListener("click", function () { 달력월 = new Date(달력월.getFullYear(), 달력월.getMonth() + 1, 1); 달력그리기(); });
+  Array.prototype.forEach.call(document.querySelectorAll(".cal-filter"), function (btn) {
+    btn.addEventListener("click", function () {
+      Array.prototype.forEach.call(document.querySelectorAll(".cal-filter"), function (b) { b.classList.remove("on"); });
+      btn.classList.add("on");
+      달력거름 = btn.getAttribute("data-f");
+      달력그리기();
+    });
+  });
+  var 크기타이머 = null;
+  window.addEventListener("resize", function () {
+    if (크기타이머) clearTimeout(크기타이머);
+    크기타이머 = setTimeout(달력그리기, 250);
+  });
+  function 다시그리기() { 예정일그리기(); 띠그리기(); 달력그리기(); }
 
   /* ---------- 예상 개원일 (달력 + D-day) ---------- */
   var OPEN_KEY = STORE_KEY + "-opendate";
@@ -1254,6 +1780,7 @@
   function isDirty() { try { return localStorage.getItem(DIRTY_KEY) === "1"; } catch (e) { return false; } }
 
   function scheduleSync() {
+    다시그리기();   // 예정일·주간 띠·달력은 입력 즉시 따라 바뀐다 (목업 11/15)
     if (닫힘()) { 보관그리기(); return; }   // 보관본 — 바뀐 것을 올리지 않는다
     markDirty();
     setSyncStatus("wait", "저장 대기…");
@@ -1267,7 +1794,7 @@
     fetch(SYNC_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ branch: SYNC_BRANCH, key: syncKey(), state: Object.assign({}, syncExtra, { checks: state, equip: equip, opendate: opendate }) })
+      body: JSON.stringify({ branch: SYNC_BRANCH, key: syncKey(), state: Object.assign({}, syncExtra, { checks: state, equip: equip, opendate: opendate, plan: plan, items: shipItems, summary: 요약계산() }) })
     }).then(function (r) { return r.json(); }).then(function (res) {
       if (res && res.ok) { clearDirty(); setSyncStatus("ok", "공용 장부에 저장됨 ✓"); }
       else if (res && res.error === "closed") {
@@ -1291,34 +1818,44 @@
         var remote = res.state || {};
         syncExtra = {};
         Object.keys(remote).forEach(function (k) {
-          if (["checks", "equip", "opendate", "savedAt", "branchCode"].indexOf(k) < 0) syncExtra[k] = remote[k];
+          if (["checks", "equip", "opendate", "plan", "items", "summary", "savedAt", "branchCode"].indexOf(k) < 0) syncExtra[k] = remote[k];
         });
         closedAt = remote.closedAt || null;   // 보관 가름(창구 규약 10/23) — 닫힌 지점은 그대로 보여만 준다
         var rChecks = remote.checks || {};
         var rEquip = remote.equip || [];
         var rOpen = remote.opendate || "";
-        var hasLocal = Object.keys(state).length || equip.length || opendate;
-        var hasRemote = Object.keys(rChecks).length || rEquip.length || rOpen;
+        var rPlan = remote.plan || {};
+        var rItems = remote.items || [];
+        var hasLocal = Object.keys(state).length || equip.length || opendate || Object.keys(plan).length || shipItems.length;
+        var hasRemote = Object.keys(rChecks).length || rEquip.length || rOpen || Object.keys(rPlan).length || rItems.length;
         if (!닫힘() && (isDirty() || (hasLocal && !hasRemote))) {
           Object.keys(rChecks).forEach(function (id) { if (!state[id]) state[id] = rChecks[id]; });
           if (!equip.length && rEquip.length) equip = rEquip;
           if (!opendate && rOpen) opendate = rOpen;
+          Object.keys(rPlan).forEach(function (id) { if (!plan[id]) plan[id] = rPlan[id]; });
+          if (!shipItems.length && rItems.length) shipItems = rItems;
           saveState(state);
           saveEquip();
           saveOpendate();
-          refresh(); renderEquip(); renderOpendate(); 보관그리기();
+          savePlan();
+          saveShipItems();
+          refresh(); renderEquip(); renderOpendate(); renderItems(); 보관그리기(); 다시그리기();
           pushRemote();
         } else {
-          state = rChecks; equip = rEquip; opendate = rOpen;
+          state = rChecks; equip = rEquip; opendate = rOpen; plan = rPlan; shipItems = rItems;
           saveState(state);
           saveEquip();
           saveOpendate();
-          refresh(); renderEquip(); renderOpendate(); 보관그리기();
+          savePlan();
+          saveShipItems();
+          refresh(); renderEquip(); renderOpendate(); renderItems(); 보관그리기(); 다시그리기();
           setSyncStatus("ok", 닫힘() ? "공용 장부와 연결됨 ✓ (보관본)" : "공용 장부와 연결됨 ✓");
         }
       })
       .catch(function () { setSyncStatus("err", "연결 안 됨 — 이 기기 기록으로 표시 중"); });
   }
+
+  다시그리기();   // 첫 그림(예정일 기본·주간 띠·달력) — 목업 11/15
 
   /* ---------- 지점 목록 적용(장부따라가기 v0 ㉮) — 이름·개원예정일·보관은 본사 장부가 원본 ---------- */
   목록약속.then(function (bs) {
@@ -1333,7 +1870,7 @@
       document.getElementById("gate-title").textContent = 새제목;
       document.getElementById("board-title").textContent = 내지점.name + " 개원 로드맵";
     }
-    if (내지점.openDate) { 장부개원일 = 내지점.openDate; renderOpendate(); }
+    if (내지점.openDate) { 장부개원일 = 내지점.openDate; renderOpendate(); 다시그리기(); }
     if (내지점.status === "운영중" && !닫힘()) { 목록닫힘 = true; 보관그리기(); }   // 운영 전환 = 보관 자동
   });
 

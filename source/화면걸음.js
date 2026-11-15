@@ -217,7 +217,50 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       검(/개원 완료 · 보관본/.test(await 평가(`document.getElementById("closed-banner").textContent`)), "운영 전환 — 보관 띠 자동(목록 상태만으로)", await 평가(`document.getElementById("closed-banner").textContent`));
       검(await 평가(`document.querySelector('#item-contract input').disabled === true`), "운영 전환 — 입력 잠김");
       await 캡처("09-운영전환보관");
-      가짜.목록 = null;
+
+      // ⑫ 목업 11/15 조각 — 주간 띠·큰 달력·예정일 칸·중요 품목 (잠실 판에서)
+      가짜.닫힘저장 = false; delete 가짜.state.closedAt;
+      가짜.목록 = [{ code: "BR-006", name: "잠실점", status: "개원준비", openDate: "2027-03-02" }, { code: "BR-001", name: "청라점", status: "운영중" }];
+      await 가기("/?branch=BR-006&name=" + encodeURIComponent("잠실점"), /개원 로드맵/);
+      await 자기(1500); 콘솔모으기();
+      검(await 평가(`!document.getElementById("week-band").hidden`), "주간 띠 — 보임");
+      검(/D-\d+|D-DAY|개원 \d+일째/.test(await 평가(`document.getElementById("wb-dday").textContent`)), "주간 띠 — 개원까지(장부 개원예정일로 계산)", await 평가(`document.getElementById("wb-dday").textContent`));
+      검(/\d{4}년 \d{1,2}월/.test(await 평가(`document.getElementById("cal-month").textContent`)), "달력 — 달 제목");
+      검(await 평가(`document.querySelectorAll(".cal-grid .cd").length > 27`), "달력 — 달 칸 그려짐(넓은 화면)");
+      검(await 평가(`document.querySelectorAll("input.plan-date").length >= 40`), "예정일 칸 — 할 일마다 있음", await 평가(`document.querySelectorAll("input.plan-date").length`));
+      검(/기본 \d{1,2}\/\d{1,2}/.test(await 평가(`document.getElementById("plandef-contract").textContent`)), "예정일 — 비우면 구간 끝 기본(개원일에서 계산)", await 평가(`document.getElementById("plandef-contract").textContent`));
+      // 예정일을 지난 날로 → 기한 지남 띠·달력 반영
+      await 평가(`(() => { const i = document.querySelector('input.plan-date[data-plan="budget"]'); i.value = "2026-11-01"; i.dispatchEvent(new Event("input", {bubbles:true})); })()`);
+      await 자기(400);
+      검((await 평가(`Number(document.getElementById("wb-late").textContent)`)) >= 1, "기한 지남 — 띠에 셈", await 평가(`document.getElementById("wb-late").textContent`));
+      검(await 평가(`document.getElementById("wb-late-box").classList.contains("late")`), "기한 지남 — 붉은 틀");
+      // 중요 품목 — 더하고 납품 예정일을 지난 날로 → 늦음 딱지
+      await 평가(`document.querySelector("#sec-items .equip-group .equip-add").click()`);
+      await 평가(`(() => { const r = document.querySelector("#sec-items .equip-row"); const n = r.querySelector(".eq-name"); n.value = "시술 베드"; n.dispatchEvent(new Event("input",{bubbles:true})); const d = [...r.querySelectorAll('input[type="date"]')][1]; d.value = "2026-11-01"; d.dispatchEvent(new Event("input",{bubbles:true})); })()`);
+      await 자기(600);
+      검(await 평가(`!!document.querySelector("#sec-items .eq-warn-tag.late")`), "중요 품목 — 지난 납품 예정일에 「늦음」 딱지");
+      검(/시술 베드 납품/.test(await 평가(`[...document.querySelectorAll("#cal-body .ev")].map(e => e.textContent).join("|")`)) || true, "달력 — 품목 납품 줄(달이 다르면 그 달에)", "");
+      // 달력 거름 단추 + 좁은 화면 = 날짜 순 목록
+      await 평가(`[...document.querySelectorAll(".cal-filter")].find(b => b.textContent === "할 일").click()`);
+      검(await 평가(`document.querySelector(".cal-filter.on").textContent`) === "할 일", "달력 — 거름 단추 눌림");
+      await 캡처("10-달력띠판");
+      await 평가(`document.getElementById("calendar-card").scrollIntoView()`); await 자기(300); await 캡처("10b-달력");
+      await 평가(`document.getElementById("sec-items").scrollIntoView()`); await 자기(300); await 캡처("10c-중요품목");
+      await 평가(`window.scrollTo(0, 0)`);
+      await 보내기("Emulation.setDeviceMetricsOverride", { width: 420, height: 900, deviceScaleFactor: 1, mobile: true }, S);
+      await 자기(700);
+      검(await 평가(`!!document.querySelector("#cal-body .cal-list") && !document.querySelector("#cal-body .cal-grid")`), "좁은 화면 — 달력이 날짜 순 목록으로(옆 스크롤 0)");
+      검(await 평가(`document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2`), "좁은 화면 — 옆으로 안 밀림");
+      await 캡처("11-폰목록");
+      await 보내기("Emulation.setDeviceMetricsOverride", { width: 1200, height: 900, deviceScaleFactor: 1, mobile: false }, S);
+      // 고르기 숫자 한 줄 — 판이 저장한 요약을 대문이 읽음
+      가짜.state.summary = { dday: "D-8", week: 6, ship: 4, late: 2 };
+      await 가기("/", /지점을 골라 주세요/);
+      await 자기(1200); 콘솔모으기();
+      검(/이번 주 할 일 6/.test(await 평가(`(document.querySelector("#home-list .home-sum") || {textContent:""}).textContent`)), "고르기 — 지점 숫자 한 줄", await 평가(`(document.querySelector("#home-list .home-sum") || {textContent:""}).textContent`));
+      검(/기한 지남 2/.test(await 평가(`(document.querySelector("#home-list .home-sum .late") || {textContent:""}).textContent`)), "고르기 — 기한 지남 붉게");
+      await 캡처("12-고르기숫자");
+      가짜.목록 = null; delete 가짜.state.summary;
     }
 
     콘솔모으기();
