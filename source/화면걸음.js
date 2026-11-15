@@ -95,7 +95,7 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
     await 자기(1500); 콘솔모으기();
     let 글 = await 글자();
     검(/발산점 개원 로드맵/.test(글), "판 열림(발산)");
-    검(/0 \/ 45 완료|\d+ \/ 45 완료/.test(글), "항목 45(기본 목록)", (글.match(/\d+ \/ \d+ 완료/) || [])[0]);
+    검(/\d+ \/ 50 완료/.test(글), "항목 50(기본 목록 — 11/15 목록 최신화)", (글.match(/\d+ \/ \d+ 완료/) || [])[0]);
     검((await 평가(`document.getElementById("brcode").textContent`)) === "BR-008", "머리글 코드 자리 — 주소 쿼리 값");
     검(/연결 안 됨|연결됨|저장|확인 중/.test(await 평가(`document.getElementById("sync-status").textContent`)), "동기화 상태 줄(격리라 연결 안 됨·확인 중 정상)", await 평가(`document.getElementById("sync-status").textContent`));
     await 캡처("01-발산");
@@ -106,7 +106,8 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
     글 = await 글자();
     검(/의정부점 개원 로드맵/.test(글), "판 열림(의정부 — 같은 한 페이지)");
     검(await 평가(`!!document.getElementById("item-transfer") && !!document.getElementById("item-lease") && !document.getElementById("item-site")`), "예외 항목 — 권리양도·임대차로 바뀜(자료 표)");
-    검(/\d+ \/ 46 완료/.test(글), "항목 46(예외 하나 더)", (글.match(/\d+ \/ \d+ 완료/) || [])[0]);
+    검(/\d+ \/ 51 완료/.test(글), "항목 51(예외 하나 더)", (글.match(/\d+ \/ \d+ 완료/) || [])[0]);
+    검(await 평가(`!!document.getElementById("item-setupcheck") && !!document.getElementById("item-equipledger") && !document.getElementById("item-mailbox") && !document.getElementById("item-server") && !document.getElementById("item-serverspot") && !document.getElementById("item-serverbuy")`), "목록 최신화 — 새 줄 있음·걷은 줄·폐기 서버 줄 숨김(11/15)");
     await 캡처("02-의정부");
 
     // ③ 뿌리 — 지점 고르기: 목록은 창구 ?list 에서(11/14 둘째 커밋 — 박힌 목록 없음).

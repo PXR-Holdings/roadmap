@@ -557,7 +557,7 @@
         { id: "reqcheck",who: "joint",  legal: true, name: "의료기관 개설 요건 확인", note: "건물 용도·면적·주차 등 — 관할 보건소·행정사에 사전 문의" },
         { id: "bizreg",  who: "branch", legal: true, name: "사업자등록·의료기관 개설신고 착수", note: "지역 보건소마다 요구 서류가 다름. 뒤의 플레이스 등록·결제 신청의 전제 조건" },
         { id: "interior",who: "joint",  name: "인테리어 설계 확정", note: "본사 표준 도면 + 지점 상황 반영. 시술실 수·동선은 예약 슬롯 계산과 직결" },
-        { id: "serverspot", who: "joint", retired: "9/13 클라우드 결정", name: "서버 자리 확정 (도면에 반영)", note: "지점 서버가 클라우드 가상 서버로 바뀌어(대표 결정 9/13) 원내 서버 자리가 필요 없어짐. 와이파이 분리 배선은 통신·인터넷 회선 항목에서" },
+        /* serverspot(서버 자리 확정)은 폐기 뒤 화면에서 숨김(대표 승인 11/15 — 옛 체크는 공용 장부에 그대로) */
         { id: "device",  who: "joint",  name: "의료기기(레이저 등) 발주", note: "납기가 길어 일찍 발주. 본사 표준 장비 목록 기준" },
         { id: "budget",  who: "branch", name: "개원 자금 계획표 작성", note: "개원 후 3개월 운영비까지 포함해서 계획" },
         { id: "vicehire",who: "joint",  ongoing: true, name: "부원장 구인 착수", note: "일찍 시작할수록 좋음. 채용 공고·조건 설계는 본사와 함께, 개원까지 계속 진행" }
@@ -570,12 +570,12 @@
         { id: "staffhire", who: "branch", ongoing: true, name: "직원 채용 착수 (의료진·코디)", note: "본사 채용 공고 표준문·면접 질문지 제공. 확정될 때까지 계속" },
         { id: "vicetrain", who: "hq", ongoing: true, name: "부원장 교육 (채용 확정 즉시 시작)", note: "기간이 아니라 ‘채용됨’이라는 사건에 걸린 항목 — 뽑히는 날부터 시술 표준·안전 규정·시스템 교육" },
         { id: "manual",    who: "joint", name: "지점 시술장부/매뉴얼 완성", note: "본사 표준 시술 카드에 지점 장비·인력 차이(오버레이)를 반영해 확정. 안전 칸은 잠금 영역 — 차이는 반드시 의료진 승인" },
-        { id: "labor",     who: "branch", name: "근로계약서·4대보험 준비", note: "본사 표준 근로계약서 양식 제공" },
+        { id: "labor",     who: "branch", name: "근로계약서 만들기·서명 + 4대보험", note: "지점 설정에 근로계약 값 넣기 → 직원 장부 계약 묶음에서 만들고 서명·보관" },
         { id: "waste",     who: "branch", name: "의료폐기물 수거 업체 계약", note: "개설신고에 필요한 경우가 많음" },
         { id: "insurance", who: "branch", name: "의료배상책임보험·화재보험 가입", note: "" },
         { id: "pg",        who: "branch", name: "카드 단말기·결제(PG) 신청", note: "사업자등록 후에만 가능" },
         { id: "network",   who: "branch", name: "통신·인터넷 회선 신청", note: "기업용 유선 회선(월 3~5만원) 그대로, LTE 백업 필수 아님(대표 결정 9/13 — 안정성은 개원 전 점검 항목으로). 공유기·와이파이(고객/업무 분리) 준비 포함. 고정IP·포트포워딩 불필요" },
-        { id: "serverbuy", who: "joint", retired: "9/13 클라우드 결정", name: "서버 장비 구매 (미니PC·UPS·공유기)", note: "미니PC·UPS 등 서버 하드웨어 구매 없음(클라우드 전환). 공유기 등 원내망 기기는 통신·인터넷 회선 항목에서" },
+        /* serverbuy(서버 장비 구매)는 폐기 뒤 화면에서 숨김(대표 승인 11/15 — 옛 체크는 공용 장부에 그대로) */
         { id: "cctv",      who: "branch", name: "CCTV 설치·개인정보 안내문 계획", note: "안내문은 본사 표준 양식 사용" },
         { id: "youtube",   who: "joint",  name: "원내용 유튜브 촬영", note: "본사와 일정·내용을 조율해 촬영 진행" }
       ],
@@ -589,15 +589,20 @@
       items: [
         { id: "staffdone", who: "branch", deadline: "D-14", name: "직원 채용 마무리 + 근로계약 체결", note: "개원 필수 인원(코디 최소 커버리지)이 D-14까지 확정되도록 집중 관리" },
         { id: "vicedone",  who: "joint",  deadline: "D-14", name: "부원장 채용 확정", note: "확정 즉시 교육 이어서 진행" },
-        { id: "accounts",  who: "hq",     name: "지점 계정 세트 발급", note: "구글 워크스페이스 등 지점용 계정 일괄 발급" },
-        { id: "server",    who: "hq",     retired: "9/13 클라우드 결정", name: "지점 물리서버(검문소)·지점 클라우드 설치", note: "병원에 놓는 물리 서버는 없어짐(대표 결정 9/13) — 아래 \"지점 가상 서버 켜기\"로 대체" },
-        { id: "cloudserver", who: "hq", name: "지점 가상 서버 켜기", note: "⚠ 선행 조건: 청라점(본원) 서버 이사 완료 후 (대표 결정 9/3). 본사·서버 방 몫 — 지점 현장에서 할 일 아님. 세부 절차는 서버 방 \"새 지점 세우기\" 문서" },
-        { id: "branchledger", who: "joint", name: "지점장부 등재·지점 고유 자료 입력", note: "직원·공간·장비 대장·사용목록 — 본사 장부 편집기에서 입력" },
-        { id: "bookmarks", who: "joint", name: "태블릿·PC 즐겨찾기 설정", note: "지점 화면 주소를 태블릿·PC에 등록" },
+        { id: "accounts",  who: "hq",     name: "조직 계정 발급(마이크로소프트 365)", note: "조직 계정을 발급하고 포털 계정·권한 관리 탭에서 권한 주기" },
+        /* server(지점 물리서버)는 폐기 뒤 화면에서 숨김(대표 승인 11/15 — 옛 체크는 공용 장부에 그대로) */
+        { id: "cloudserver", who: "hq", name: "지점 서버 설치", note: "본사가 지점 서버 설치 → 지점 포털 주소가 열리는지 확인. 지점 현장에서 할 일 아님" },
+        { id: "branchledger", who: "joint", name: "지점 등록 + 지점 장부 채우기", note: "본사가 지점 탭에 지점을 등록하면, 지점대표원장이 지점 장부에서 직원·원장·공간·장비·우리 지점이 하는 시술·우리 지점 상품·지점 설정을 채웁니다" },
+        { id: "equipledger", who: "branch", name: "장비 대장 채우기", note: "「시술에 필요한데 없는 장비」가 0인지 확인" },
+        { id: "stockinit", who: "branch", name: "재고 준비 — 안전 재고·첫 입고", note: "품목 안전 재고를 정하고 소모품 첫 입고" },
+        { id: "myproducts", who: "joint", name: "우리 지점 상품 확인", note: "본사 상품 목록을 확인하고 필요하면 지점판 신청" },
+        { id: "branchconfig", who: "branch", name: "지점 설정 채우기", note: "결제 수단 · 서류 수수료 · 온라인 예약" },
+        { id: "customerdb", who: "joint", name: "(기존 병원 인수일 때) 이전 고객 가져오기", note: "고객DB 이동으로 이전 고객을 가져옵니다 — 인수가 아니면 건너뜀" },
+        { id: "bookmarks", who: "joint", name: "포털 주소 등록 + 고객 도착 태블릿 설치", note: "태블릿·PC에 포털 주소를 등록하고, 고객 도착 태블릿을 설치해 시험 접수까지" },
         { id: "pinissue", who: "hq", name: "직원 PIN 발급", note: "직원 장부 등재 뒤 발급" },
-        { id: "mailbox",   who: "hq",     name: "관제판·우체통 연결 확인", note: "지점 상태 편지(JSON)가 본사에 도착하는지 시험" },
-        { id: "schedule",  who: "joint",  name: "직원 시간표 모듈에 지점 직원 등록", note: "주41시간·A/B조·코디 커버리지 규칙 교육 포함" },
-        { id: "wiki",      who: "hq",     name: "위키(시술 카드) 지점 오버레이 개설 + 열람 교육", note: "완성된 시술장부가 재료. 안전 칸 잠금부터 교육" },
+        { id: "setupcheck", who: "hq",   name: "새 지점 설치 확인", note: "설정 열쇠 이름 대조 「✓ 전부 있음」 — 본사가 확인" },
+        { id: "schedule",  who: "joint",  name: "포털 근무표 짜기 · 진료표 짜기", note: "첫 주 근무표·진료표를 포털에서 만들기. 주41시간·A/B조·코디 커버리지 규칙 교육 포함" },
+        { id: "wiki",      who: "hq",     name: "우리 지점 시술 카드 확인 + 열람 교육", note: "표준문서에서 우리 지점 시술 카드를 확인하고 열람 교육. 안전 칸 잠금부터 교육" },
         { id: "homepage",  who: "joint",  legal: true, name: "지점 홈페이지 개설", note: "본사 표준 틀 + 지점 정보(원장 소개·진료시간·오시는 길). 예약 단추 자리는 비워두기. 게시 전 의료광고 심의 대상 여부 확인" },
         { id: "place",     who: "branch", name: "네이버 스마트플레이스 등록", note: "사업자등록증·개설신고 서류 필요. 승인 심사에 며칠 걸림 — 서류 나오는 대로 바로" },
         { id: "channels",  who: "joint",  name: "카카오채널·당근비즈니스 개설", note: "페이지 설정과 채널 담당자(관리자) 지정까지. 프로필·소개문은 본사 표준 자료 사용 — 직원 교육 전에 세팅 완료" },
@@ -614,7 +619,7 @@
     {
       id: "p7", dday: "D-7 ~ D-day", title: "리허설",
       items: [
-        { id: "rehearsal", who: "joint",  name: "모의 운영 리허설", note: "가짜 고객으로 접수→시술→결제 전 과정을 최소 1회. 문제점 목록 작성" },
+        { id: "rehearsal", who: "joint",  name: "모의 운영 리허설", note: "가짜 고객으로 도착 접수 → 차트 → 수납 → 이용권 차감 → 재고 차감을 포털에서 한 바퀴. 문제점 목록 작성" },
         { id: "netcheck", who: "branch", name: "인터넷 회선 안정성 점검", note: "인터넷 끊김 = 화면 멈춤 — 개원 전 회선 안정 확인 (9/13 결정)" },
         { id: "privacy",   who: "branch", name: "개인정보 처리방침·동의서 비치 확인", note: "본사 표준 양식" },
         { id: "marketing", who: "joint",  legal: true, name: "개원 안내 마케팅", note: "플레이스 소식·사진 채우기 포함. 의료광고 심의 대상 여부 확인 후 집행" },
