@@ -365,7 +365,7 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
         { code: "BR-004", name: "분당미금점", status: "개원준비", openDate: "2026-12-07", checksDone: 31,
           sched: { lease: "2026-09-07", intStart: "2026-09-21", intEnd: "2026-11-10", intDone: false, equipIn: "2026-11-24", eduStart: "2026-11-23", eduEnd: "2026-12-04" } },
         { code: "BR-003", name: "산본점", status: "개원준비", openDate: "2026-12-14", checksDone: 34,
-          sched: { lease: "2026-09-14", intStart: "2026-10-05", intEnd: "2026-11-27", intDone: false, equipIn: "2026-12-01", eduStart: "2026-11-30", eduEnd: "2026-12-11" } },
+          sched: { lease: "2026-09-14", intStart: "2026-10-05", intEnd: "2026-12-20", intDone: false, equipIn: "2026-12-01", eduStart: "2026-11-30", eduEnd: "2026-12-11" } },   // intEnd 가 개원일(12-14)을 넘음 — 막대가 개원일 글을 지나가는 꼴(대표 ② 확인)
         { code: "BR-005", name: "김포점", status: "개원준비", openDate: "2026-12-28", checksDone: 22, sched: {} },
         { code: "BR-001", name: "청라점", status: "운영중", openDate: "", checksDone: 50, sched: {} }
       ];
@@ -379,6 +379,7 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       검(/인테리어 \d+일 늦음/.test(글), "전체 일정 — 늦어짐 경고 배지(종료 예상 지남)");
       검(await 평가(`!!document.querySelector(".sh-load .n3")`), "전체 일정 — 개원 몰림 띠(3곳 빨강)");
       검(await 평가(`(() => { const lab = document.querySelector(".sh-todaylab"); if (!lab || !lab.closest(".sh-todayrow")) return false; const L = lab.getBoundingClientRect(); return ![...document.querySelectorAll(".sh-months > div")].some(c => { const R = c.getBoundingClientRect(); return !(L.right <= R.left || L.left >= R.right || L.bottom <= R.top || L.top >= R.bottom); }); })()`), "전체 일정 — 오늘 글이 제 줄에 · 달 이름과 안 겹침(대표 ①)");
+      검(await 평가(`(() => { const od = [...document.querySelectorAll(".sh-od")].find(o => /12월 14일/.test(o.textContent)); if (!od) return "글없음"; const r = od.getBoundingClientRect(); if (!r.width) return "안보임"; const el = document.elementFromPoint(r.left + r.width * 0.7, r.top + r.height / 2); return (el === od || od.contains(el)) ? true : String(el && el.className); })()`) === true, "개원일 글 — 인테리어 막대가 개원일을 넘어도(산본) 글이 위층이라 안 덮임(대표 ②)");
       검(await 평가(`document.querySelector(".sh-row .sh-nm").textContent`).then(t => /분당미금점/.test(t)), "전체 일정 — 개원 빠른 순(분당미금 먼저)");
       검(/개원을 마친 지점 1곳/.test(글), "전체 일정 — 마친 지점 접힘 줄");
       await 평가(`document.getElementById("sched-fold").click()`); await 자기(400);
@@ -419,7 +420,8 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       검(await 평가(`document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2`), "폰 폭 — 판 전체는 옆으로 안 밀림");
       검(await 평가(`(() => { const s = document.querySelector(".sh-sc"); return s && s.scrollWidth > s.clientWidth; })()`), "폰 폭 — 일정표만 가로 스크롤");
       검(await 평가(`(() => { const s = document.querySelector(".sh-sc"); return s && s.scrollLeft > 0; })()`), "폰 폭 — 처음 열 때 오늘 자리로 옆 스크롤돼 있음(대표 ②)");
-      검(await 평가(`(() => { const s = document.querySelector(".sh-sc"), lab = document.querySelector(".sh-todaylab"); if (!s || !lab) return false; const B = s.getBoundingClientRect(), L = lab.getBoundingClientRect(); const p = (L.left - B.left) / B.width; return p > 0.05 && p < 0.65; })()`), "폰 폭 — 오늘 선이 화면 왼쪽 1/3 언저리에 보임");
+      검(await 평가(`(() => { const s = document.querySelector(".sh-sc"), lab = document.querySelector(".sh-todaylab"), gl = document.querySelector(".sh-gl"); if (!s || !lab || !gl) return false; const B = s.getBoundingClientRect(), L = lab.getBoundingClientRect(), w = gl.getBoundingClientRect().width; const p = (L.left - B.left - w) / Math.max(1, B.width - w); return p > 0 && p < 0.6; })()`), "폰 폭 — 오늘 선이 이름 칸에 안 가리고 막대 폭 왼쪽 1/3 언저리에 보임");
+      검(await 평가(`(() => { const sc = document.querySelector(".sh-sc"); if (!sc) return false; const B = sc.getBoundingClientRect(); const ns = [...document.querySelectorAll(".sh-row .sh-nm")]; return ns.length >= 3 && ns.every(n => { const r = n.getBoundingClientRect(); return r.width > 0 && r.left >= B.left - 1 && r.left < B.left + 230; }); })()`), "폰 폭 — 옆 스크롤한 상태에서 지점 이름 세 줄 다 읽힘(이름 칸 왼쪽 붙음 · 대표 ①)");
       await 캡처("17-전체일정폰");
       await 보내기("Emulation.setDeviceMetricsOverride", { width: 1200, height: 900, deviceScaleFactor: 1, mobile: false }, S);
       // 오늘 글 — 달 끝·달 첫날(달 경계 양쪽)에도 달 이름과 안 겹치는지(대표 ① 확인 조건) — 페이지 시계만 바꿔 다시 열어 봄

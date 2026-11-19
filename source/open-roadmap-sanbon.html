@@ -440,7 +440,8 @@
   .sh-sc { overflow-x: auto; }   /* 폰 폭에서는 일정표만 가로 스크롤(판 전체는 안 밀림) */
   .sh-gt { min-width: 940px; }
   .sh-gr { display: grid; grid-template-columns: 200px 1fr; align-items: stretch; }
-  .sh-gl { padding: 0 10px 0 4px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid var(--line); min-height: 46px; }
+  .sh-gl { padding: 0 10px 0 4px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid var(--line); min-height: 46px;
+    position: sticky; left: 0; z-index: 3; background: var(--surface); }   /* 옆 스크롤해도 지점 이름 칸은 왼쪽에 붙음(대표 고침 11/19) */
   .sh-axis .sh-gl { min-height: 0; }
   .sh-months { display: grid; position: relative; }
   .sh-months div { font-size: 12px; color: var(--muted); padding: 4px 6px; border-left: 1px solid var(--line); white-space: nowrap; }
@@ -452,6 +453,8 @@
   .sh-row { border-top: 1px solid var(--line); cursor: pointer; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; padding: 0; width: 100%; text-align: left; display: grid; grid-template-columns: 200px 1fr; font: inherit; color: inherit; }
   .sh-row:hover { background: var(--surface2); }
   .sh-row.sel { background: var(--accent-soft); }
+  .sh-row:hover .sh-gl, .sh-row:hover .sh-od { background: var(--surface2); }
+  .sh-row.sel .sh-gl, .sh-row.sel .sh-od { background: var(--accent-soft); }
   .sh-nm { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .sh-sb { font-size: 11.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; margin-top: 2px; }
   .sh-pg { flex: 1; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; min-width: 40px; }
@@ -463,11 +466,13 @@
   .sh-seg.int { background: var(--accent); opacity: .85; }
   .sh-seg.int.late { background: repeating-linear-gradient(45deg, var(--danger), var(--danger) 5px, transparent 5px, transparent 9px); opacity: 1; border: 1px solid var(--danger); }
   .sh-seg.edu { background: var(--sch-edu); height: 8px; margin-top: 9px; opacity: .9; }
-  .sh-mk { position: absolute; top: 50%; }
+  .sh-mk { position: absolute; top: 50%; z-index: 2; }   /* 점·마름모·깃발은 막대 위층 */
+  .sh-mk.open { z-index: 3; }   /* 개원 깃발은 날짜 글 바탕보다도 위 */
   .sh-mk.lease { width: 10px; height: 10px; border-radius: 50%; background: var(--sch-lease); margin: -5px 0 0 -5px; }
   .sh-mk.equip { width: 10px; height: 10px; background: var(--sch-equip); transform: rotate(45deg); margin: -16px 0 0 -5px; }
   .sh-mk.open { width: 13px; height: 16px; background: var(--sch-open); border-radius: 2px 8px 8px 2px; margin: -8px 0 0 0; }
-  .sh-od { position: absolute; top: 50%; margin-top: -9px; font-size: 11.5px; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; padding-left: 18px; }
+  .sh-od { position: absolute; top: 50%; margin-top: -10px; font-size: 11.5px; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums;
+    padding: 1px 5px 1px 18px; background: var(--surface); border-radius: 4px; z-index: 2; }   /* 날짜 글은 막대에 안 덮이게 — 위층 + 바탕 채움(대표 고침 11/19) */
   .sh-today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--sch-today); z-index: 2; pointer-events: none; }
   .sh-todayrow { position: relative; height: 18px; }   /* 오늘 글 제 줄 — 달 이름과 안 겹치게(대표 11/19) */
   .sh-todaylab { position: absolute; top: 1px; font-size: 10.5px; color: var(--sch-today); font-weight: 700; white-space: nowrap; transform: translateX(4px); }
@@ -1169,7 +1174,10 @@
         처음스크롤 = true;
         var 줄왼 = 오늘줄칸.getBoundingClientRect(), 판왼 = gt.getBoundingClientRect();
         var 선왼 = (줄왼.left - 판왼.left) + 줄왼.width * (x(TODAY) / 100);
-        if (선왼 > sc.scrollLeft + sc.clientWidth * 0.66) sc.scrollLeft = Math.max(0, 선왼 - sc.clientWidth / 3);
+        // 이름 칸이 왼쪽에 붙어 있으므로 실제 보이는 막대 폭 기준으로 — 선이 그 2/3 밖이면 막대 폭의 1/3 자리로
+        var 이름폭 = (gt.querySelector(".sh-gl") || { offsetWidth: 0 }).offsetWidth;
+        var 보는폭 = Math.max(60, sc.clientWidth - 이름폭);
+        if (선왼 > sc.scrollLeft + 이름폭 + 보는폭 * 0.66) sc.scrollLeft = Math.max(0, 선왼 - 이름폭 - 보는폭 / 3);
       }
       gt.querySelectorAll(".sh-row").forEach(function (r) {
         r.addEventListener("click", function () { 고른 = r.getAttribute("data-i"); 그리기(); 고치기판(); });
