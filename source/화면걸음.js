@@ -60,7 +60,26 @@ async function 가짜답(p, sid) {
   if (p.request.method === "POST") {
     let j = {};
     try { j = JSON.parse(p.request.postData || "{}"); } catch {}
-    if (j && (j.editKey !== undefined || (j.config && !j.branch))) {
+    if (j && j.editKey !== undefined && j.schedList) {
+      // 전체 일정 묶음 읽기(접점 v0.1) — 지문 맞을 때만 전 지점 한 번에
+      답 = j.editKey === "편집키1122"
+        ? { ok: true, branches: JSON.parse(JSON.stringify(가짜.일정 || [])), savedAt: new Date().toISOString() }
+        : { ok: false, error: "bad_edit_key" };
+    }
+    else if (j && j.editKey !== undefined && j.branch && j.sched) {
+      // 일정 쓰기(접점 v0.1) — 그 지점 sched 만 통째 교체 · 꼴 검사
+      const 칸들 = ["lease", "intStart", "intEnd", "intDone", "equipIn", "eduStart", "eduEnd"];
+      if (j.editKey !== "편집키1122") 답 = { ok: false, error: "bad_edit_key" };
+      else {
+        const 줄 = (가짜.일정 || []).find(b => b.code === j.branch);
+        if (!줄) 답 = { ok: false, error: "bad_branch" };
+        else if (Object.keys(j.sched).some(k => !칸들.includes(k)) ||
+                 칸들.some(k => k !== "intDone" && j.sched[k] && !/^\d{4}-\d{2}-\d{2}$/.test(j.sched[k])) ||
+                 typeof j.sched.intDone !== "boolean") 답 = { ok: false, error: "bad_sched" };
+        else { 줄.sched = j.sched; 답 = { ok: true, savedAt: new Date().toISOString() }; }
+      }
+    }
+    else if (j && (j.editKey !== undefined || (j.config && !j.branch))) {
       // 목록 편집 저장(접점 v0) — 창구가 본사용 편집 비밀번호 지문으로 판정하는 꼴을 흉내
       if (j.editKey === "편집키1122" && j.config) { 가짜.설정 = j.config; 답 = { ok: true, savedAt: new Date().toISOString() }; }
       else 답 = { ok: false, error: "bad_edit_key" };
@@ -157,6 +176,11 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
     // ⑤-2 편집 문(/?edit) — 비밀번호 문이 서고 비밀번호 값·힌트 글 없음(저장 동작은 가짜창구 걸음 ⑭에서)
     await 가기("/?edit", /본사용 편집 비밀번호/);
     검(/준비 목록 편집/.test(await 글자()) && /본사용 편집 비밀번호/.test(await 글자()), "편집 문 — 비밀번호 문이 섬");
+    // ⑤-3 전체 일정 문(/?sched · 목업 11/19) — 비밀번호 문이 서고(열쇠 없으면 자료 요청도 안 감) 대문에 들어가는 길
+    await 가기("/?sched", /본사용 편집 비밀번호/);
+    검(/전체 지점 개원 일정/.test(await 글자()) && /본사용 편집 비밀번호/.test(await 글자()), "전체 일정 문 — 비밀번호 문이 섬");
+    await 가기("/", /지점을 골라 주세요/);
+    검(/본사: 전체 일정/.test(await 글자()), "대문 — 「본사: 전체 일정」 길 있음");
 
     // ⑥~⑧ 보관(막고 보관) — 가짜 창구에서만(창구 규약 닫기·보관 10/23)
     if (가짜창구켬) {
@@ -336,7 +360,55 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       await 평가(`document.getElementById("edit-save").click()`);
       for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.getElementById("edit-status").textContent`)); i++) await 자기(300);
       검(!!(가짜.설정 && 가짜.설정.itemsCatalog) && 가짜.설정.itemsCatalog.length === 46 && 가짜.설정.itemsCatalog[0].lead === "4~6주", "품목 초안 — 저장하면 초안 46품목이 창구 자료로(기간 글 포함)", 가짜.설정 && 가짜.설정.itemsCatalog ? String(가짜.설정.itemsCatalog.length) : "없음");
-      가짜.설정 = null; 가짜.목록 = null;
+
+      // ⑮ 전체 지점 개원 일정(/?sched · 목업 11/19) — 문·숫자 카드·막대·경고·몰림 띠·접기·날짜 고치기·저장·거절
+      가짜.일정 = [
+        { code: "BR-004", name: "분당미금점", status: "개원준비", openDate: "2026-12-07", checksDone: 31,
+          sched: { lease: "2026-09-07", intStart: "2026-09-21", intEnd: "2026-11-10", intDone: false, equipIn: "2026-11-24", eduStart: "2026-11-23", eduEnd: "2026-12-04" } },
+        { code: "BR-003", name: "산본점", status: "개원준비", openDate: "2026-12-14", checksDone: 34,
+          sched: { lease: "2026-09-14", intStart: "2026-10-05", intEnd: "2026-11-27", intDone: false, equipIn: "2026-12-01", eduStart: "2026-11-30", eduEnd: "2026-12-11" } },
+        { code: "BR-005", name: "김포점", status: "개원준비", openDate: "2026-12-28", checksDone: 22, sched: {} },
+        { code: "BR-001", name: "청라점", status: "운영중", openDate: "", checksDone: 50, sched: {} }
+      ];
+      await 평가(`sessionStorage.setItem("pxr-edit-key", "편집키1122")`);
+      await 가기("/?sched", /전체 지점 개원 일정/);
+      await 자기(1500); 콘솔모으기();
+      검(await 평가(`!document.getElementById("sched-area").hidden`), "전체 일정 — 열림(편집 비밀번호 공유)");
+      글 = await 글자();
+      검(/3곳[\s\S]*개원 준비 중인 지점/.test(글), "전체 일정 — 숫자 카드(준비 중 3곳)");
+      검(/12월 · 3곳[\s\S]*개원이 가장 몰린 달/.test(글), "전체 일정 — 몰린 달 카드(12월 3곳)");
+      검(/인테리어 \d+일 늦음/.test(글), "전체 일정 — 늦어짐 경고 배지(종료 예상 지남)");
+      검(await 평가(`!!document.querySelector(".sh-load .n3")`), "전체 일정 — 개원 몰림 띠(3곳 빨강)");
+      검(await 평가(`document.querySelector(".sh-row .sh-nm").textContent`).then(t => /분당미금점/.test(t)), "전체 일정 — 개원 빠른 순(분당미금 먼저)");
+      검(/개원을 마친 지점 1곳/.test(글), "전체 일정 — 마친 지점 접힘 줄");
+      await 평가(`document.getElementById("sched-fold").click()`); await 자기(400);
+      검(/청라점/.test(await 글자()), "전체 일정 — 펼치면 마친 지점 보임");
+      await 평가(`document.querySelector(".sh-row").click()`); await 자기(400);
+      검(await 평가(`document.querySelectorAll("#sched-sheet input[type=date]").length`) === 6, "고치기 — 날짜 여섯 칸");
+      검(/인테리어 끝남/.test(await 글자()) , "고치기 — 인테리어 끝남 체크 한 칸");
+      검(/개원일은 본사 포털 지점 탭에서 고칩니다/.test(await 글자()), "고치기 — 개원일은 보기 + 지점 탭 안내(원본 하나)");
+      await 캡처("16-전체일정");
+      await 평가(`(() => { const i = document.querySelectorAll("#sched-sheet input[type=date]")[2]; i.value = "2026-12-05"; i.dispatchEvent(new Event("input", { bubbles: true })); })()`);
+      await 자기(400);
+      검(!/인테리어 \d+일 늦음/.test(await 글자()), "고치기 — 종료 예상을 미래로 바꾸면 늦음 배지 사라짐");
+      await 평가(`[...document.querySelectorAll("#sched-sheet .sh-btn")].find(b => b.textContent === "저장").click()`);
+      for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)); i++) await 자기(300);
+      검(/저장됨 ✓/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)), "고치기 — 저장됨(창구 판정 통과)");
+      검(가짜.일정[0].sched.intEnd === "2026-12-05" && 가짜.일정[0].sched.intDone === false, "고치기 — 창구 자료의 그 지점 sched 만 바뀜", 가짜.일정[0].sched.intEnd);
+      await 평가(`sessionStorage.setItem("pxr-edit-key", "9999")`);
+      await 평가(`[...document.querySelectorAll("#sched-sheet .sh-btn")].find(b => b.textContent === "저장").click()`);
+      for (let i = 0; i < 20 && (await 평가(`document.getElementById("sched-gate").hidden`)); i++) await 자기(300);
+      검(await 평가(`!document.getElementById("sched-gate").hidden`), "전체 일정 — 틀린 비밀번호면 문이 다시 섬");
+      // 폰 폭 — 판 전체는 안 밀리고 일정표만 가로 스크롤
+      await 평가(`sessionStorage.setItem("pxr-edit-key", "편집키1122")`);
+      await 보내기("Emulation.setDeviceMetricsOverride", { width: 420, height: 900, deviceScaleFactor: 1, mobile: true }, S);
+      await 가기("/?sched", /전체 지점 개원 일정/);
+      await 자기(1500); 콘솔모으기();
+      검(await 평가(`document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2`), "폰 폭 — 판 전체는 옆으로 안 밀림");
+      검(await 평가(`(() => { const s = document.querySelector(".sh-sc"); return s && s.scrollWidth > s.clientWidth; })()`), "폰 폭 — 일정표만 가로 스크롤");
+      await 캡처("17-전체일정폰");
+      await 보내기("Emulation.setDeviceMetricsOverride", { width: 1200, height: 900, deviceScaleFactor: 1, mobile: false }, S);
+      가짜.일정 = null; 가짜.설정 = null; 가짜.목록 = null;
     }
 
     콘솔모으기();

@@ -431,6 +431,80 @@
 
   #board { display: none; }
 
+  /* ---------- 전체 지점 개원 일정 (본사 · 목업 11/19) ---------- */
+  :root { --sch-lease: #8A8499; --sch-equip: #D9822B; --sch-edu: #1F9D8B; --sch-open: #C2478E; --sch-today: #E0483C; --sch-ok: #198A6A; --sch-ok-soft: #E1F5EE; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --sch-lease: #A39DB5; --sch-equip: #EDA355; --sch-edu: #3FC4B0; --sch-open: #E072B0; --sch-today: #FF7468; --sch-ok: #4FD0AB; --sch-ok-soft: #16332B; }
+  }
+  :root[data-theme="dark"] { --sch-lease: #A39DB5; --sch-equip: #EDA355; --sch-edu: #3FC4B0; --sch-open: #E072B0; --sch-today: #FF7468; --sch-ok: #4FD0AB; --sch-ok-soft: #16332B; }
+  #sched { display: none; }
+  #sched .wrap { max-width: 1240px; }
+  #sched h1 { font-size: 21px; margin: 16px 0 4px; }
+  .sh-tag { font-size: 12px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 2px 10px; font-weight: 600; vertical-align: 3px; }
+  .sh-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .sh-kc { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .sh-kc b { display: block; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sh-kc span { color: var(--muted); font-size: 12.5px; }
+  .sh-kc.bad b { color: var(--danger); } .sh-kc.warn b { color: var(--warn); }
+  .sh-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+  .sh-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; align-items: center; }
+  .sh-legend i { display: inline-block; vertical-align: -1px; margin-right: 5px; }
+  .sh-lg-bar { width: 22px; height: 9px; border-radius: 3px; }
+  .sh-lg-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .sh-lg-dia { width: 9px; height: 9px; transform: rotate(45deg); }
+  .sh-lg-flag { width: 11px; height: 11px; border-radius: 2px 7px 7px 2px; }
+  .sh-sc { overflow-x: auto; }   /* 폰 폭에서는 일정표만 가로 스크롤(판 전체는 안 밀림) */
+  .sh-gt { min-width: 940px; }
+  .sh-gr { display: grid; grid-template-columns: 200px 1fr; align-items: stretch; }
+  .sh-gl { padding: 0 10px 0 4px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid var(--line); min-height: 46px; }
+  .sh-axis .sh-gl { min-height: 0; }
+  .sh-months { display: grid; position: relative; }
+  .sh-months div { font-size: 12px; color: var(--muted); padding: 4px 6px; border-left: 1px solid var(--line); white-space: nowrap; }
+  .sh-months div b { color: var(--ink); font-weight: 600; }
+  .sh-load div { font-size: 11.5px; padding: 3px 6px; border-left: 1px solid var(--line); color: var(--muted); min-height: 24px; }
+  .sh-load .n1 { background: var(--sch-ok-soft); color: var(--sch-ok); }
+  .sh-load .n2 { background: var(--warn-soft); color: var(--warn); font-weight: 600; }
+  .sh-load .n3 { background: var(--danger-soft); color: var(--danger); font-weight: 700; }
+  .sh-row { border-top: 1px solid var(--line); cursor: pointer; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; padding: 0; width: 100%; text-align: left; display: grid; grid-template-columns: 200px 1fr; font: inherit; color: inherit; }
+  .sh-row:hover { background: var(--surface2); }
+  .sh-row.sel { background: var(--accent-soft); }
+  .sh-nm { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .sh-sb { font-size: 11.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+  .sh-pg { flex: 1; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; min-width: 40px; }
+  .sh-pg i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+  .sh-bd { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 0 7px; white-space: nowrap; }
+  .sh-bd.bad { background: var(--danger-soft); color: var(--danger); } .sh-bd.warn { background: var(--warn-soft); color: var(--warn); }
+  .sh-tr { position: relative; min-height: 46px; }
+  .sh-seg { position: absolute; top: 50%; height: 14px; margin-top: -7px; border-radius: 4px; }
+  .sh-seg.int { background: var(--accent); opacity: .85; }
+  .sh-seg.int.late { background: repeating-linear-gradient(45deg, var(--danger), var(--danger) 5px, transparent 5px, transparent 9px); opacity: 1; border: 1px solid var(--danger); }
+  .sh-seg.edu { background: var(--sch-edu); height: 8px; margin-top: 9px; opacity: .9; }
+  .sh-mk { position: absolute; top: 50%; }
+  .sh-mk.lease { width: 10px; height: 10px; border-radius: 50%; background: var(--sch-lease); margin: -5px 0 0 -5px; }
+  .sh-mk.equip { width: 10px; height: 10px; background: var(--sch-equip); transform: rotate(45deg); margin: -16px 0 0 -5px; }
+  .sh-mk.open { width: 13px; height: 16px; background: var(--sch-open); border-radius: 2px 8px 8px 2px; margin: -8px 0 0 0; }
+  .sh-od { position: absolute; top: 50%; margin-top: -9px; font-size: 11.5px; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; padding-left: 18px; }
+  .sh-today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--sch-today); z-index: 2; pointer-events: none; }
+  .sh-todaylab { position: absolute; top: 2px; font-size: 10.5px; color: var(--sch-today); font-weight: 700; white-space: nowrap; transform: translateX(4px); }
+  .sh-done { border-top: 1px solid var(--line); padding: 9px 6px; color: var(--muted); font-size: 12.5px; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; width: 100%; text-align: left; cursor: pointer; font: inherit; }
+  .sh-sheet { background: var(--surface); border: 1.5px solid var(--accent); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .sh-sheet h2 { margin: 0 0 2px; font-size: 16px; }
+  .sh-sheet .sh-p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+  .sh-fg { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .sh-f label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .sh-f label i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .sh-f input[type="date"] { width: 100%; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 7px 9px; font: inherit; }
+  .sh-f input[type="date"]:focus { outline: none; border-color: var(--accent); }
+  .sh-openline { margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .sh-openline b { color: var(--ink); }
+  .sh-intdone { margin-top: 10px; font-size: 13px; display: flex; align-items: center; gap: 7px; cursor: pointer; }
+  .sh-say { margin-top: 10px; font-size: 13px; border-radius: 8px; padding: 8px 10px; background: var(--surface2); color: var(--muted); }
+  .sh-say.bad { background: var(--danger-soft); color: var(--danger); }
+  .sh-say.ok { background: var(--sch-ok-soft); color: var(--sch-ok); }
+  .sh-acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .sh-btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 9px; padding: 7px 13px; font-size: 13.5px; cursor: pointer; }
+  .sh-btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
   /* ---------- 뿌리 지점 고르기 (10/29) ---------- */
   #home .home-wrap { max-width: 520px; margin: 0 auto; padding: 60px 20px; text-align: center; }
   #home .pxgrid { margin: 0 auto; }
@@ -461,6 +535,43 @@
       <p id="home-loading" class="home-guide">지점 목록을 불러오는 중…</p>
     </div>
     <a class="edit-link" href="/?edit">본사: 준비 목록 편집</a>
+    <a class="edit-link" href="/?sched" style="margin-left:16px">본사: 전체 일정</a>
+  </div>
+</div>
+
+<!-- 전체 지점 개원 일정 (본사 · 목업 11/19) — 자료는 창구 일정 묶음(편집 비밀번호 지문 판정 · 접점 v0.1) -->
+<div id="sched">
+  <div class="wrap">
+    <div class="pxgrid" id="sched-logo" aria-hidden="true"></div>
+    <h1>전체 지점 개원 일정 <span class="sh-tag">본사만</span></h1>
+    <p class="edit-note">모든 지점의 임대 계약, 인테리어, 장비 입고, 직원 교육, 개원일을 한 화면에서 봅니다. 개원이 빠른 지점이 위에 옵니다. 지점 줄을 누르면 날짜를 고칠 수 있습니다.</p>
+    <div id="sched-gate">
+      <div class="gate-card" style="margin:0 auto">
+        <h1 style="font-size:17px">본사용 편집 비밀번호</h1>
+        <p>전체 일정을 보려면 본사용 편집 비밀번호를 입력하세요</p>
+        <input type="password" id="sched-pw" autocomplete="off" aria-label="본사용 편집 비밀번호" />
+        <button type="button" id="sched-open">열기</button>
+        <div id="sched-gate-err" role="alert"></div>
+      </div>
+    </div>
+    <div id="sched-area" hidden>
+      <div class="sh-cards" id="sched-cards"></div>
+      <div id="sched-sheet" class="sh-sheet" hidden></div>
+      <div class="sh-panel">
+        <div class="sh-legend">
+          <span><i class="sh-lg-dot" style="background:var(--sch-lease)"></i>임대 계약일</span>
+          <span><i class="sh-lg-bar" style="background:var(--accent)"></i>인테리어</span>
+          <span><i class="sh-lg-dia" style="background:var(--sch-equip)"></i>장비 입고</span>
+          <span><i class="sh-lg-bar" style="background:var(--sch-edu);height:6px"></i>직원 교육</span>
+          <span><i class="sh-lg-flag" style="background:var(--sch-open)"></i>개원일</span>
+          <span><i class="sh-lg-bar" style="background:var(--sch-today);width:3px;height:12px"></i>오늘</span>
+          <span><i class="sh-lg-bar" style="border:1px solid var(--danger);background:repeating-linear-gradient(45deg,var(--danger),var(--danger) 3px,transparent 3px,transparent 6px)"></i>예정보다 늦음</span>
+        </div>
+        <div class="sh-sc"><div class="sh-gt" id="sched-gt"></div></div>
+      </div>
+      <p class="home-note" id="sched-note" style="text-align:left" hidden></p>
+      <a class="edit-link" href="/">← 지점 고르기로</a>
+    </div>
   </div>
 </div>
 
@@ -944,6 +1055,229 @@
       else if (!document.getElementById("edit-area").hidden) 그리기();
     });
   }
+  /* ---------- 전체 지점 개원 일정 (본사 · /?sched · 목업 11/19) ---------- */
+  function 전체일정화면() {
+    document.getElementById("gate").hidden = true;
+    document.getElementById("gate").style.display = "none";
+    var 판 = document.getElementById("sched");
+    판.style.display = "block";
+    drawLogo(document.getElementById("sched-logo"));
+    document.title = "픽세라 개원 로드맵 — 전체 지점 개원 일정";
+    var 줄들 = null;       // 창구 일정 묶음 답(지점별 code·name·status·openDate·sched·checksDone)
+    var 전체항목수 = 0;    // 진행률 분모 — 목록 자료(?config)에서 셈
+    var 고른 = -1;
+    var 접힘펼침 = false;
+    function esc(t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]; }); }
+    function 열쇠() { try { return sessionStorage.getItem("pxr-edit-key") || ""; } catch (e) { return ""; } }
+    function 문보이기(err) {
+      document.getElementById("sched-gate").hidden = false;
+      document.getElementById("sched-area").hidden = true;
+      document.getElementById("sched-gate-err").textContent = err || "";
+    }
+    function 알림(글) {
+      var el = document.getElementById("sched-note");
+      el.textContent = 글 || ""; el.hidden = !글;
+    }
+    var 오늘따 = new Date();
+    var TODAY = 오늘따.getFullYear() + "-" + ("0" + (오늘따.getMonth() + 1)).slice(-2) + "-" + ("0" + 오늘따.getDate()).slice(-2);
+    function d(s) { return s ? new Date(s + "T00:00:00Z") : null; }
+    function days(a, b) { return Math.round((d(a) - d(b)) / 86400000); }
+    function md(s) { var t = d(s); return t ? (t.getUTCMonth() + 1) + "월 " + t.getUTCDate() + "일" : "미정"; }
+    function 범위() {
+      // 시간표의 처음·끝 달 — 적힌 날짜 전부와 오늘을 품게(앞뒤 한 달 여유, 최소 여섯 달)
+      var min = TODAY, max = TODAY;
+      (줄들 || []).forEach(function (b) {
+        var s = b.sched || {};
+        [b.openDate, s.lease, s.intStart, s.intEnd, s.equipIn, s.eduStart, s.eduEnd].forEach(function (v) {
+          if (!v) return;
+          if (v < min) min = v; if (v > max) max = v;
+        });
+      });
+      var a = d(min), z = d(max);
+      var S = new Date(Date.UTC(a.getUTCFullYear(), a.getUTCMonth(), 1));
+      var E = new Date(Date.UTC(z.getUTCFullYear(), z.getUTCMonth() + 2, 1));
+      while ((E - S) / 86400000 < 180) E = new Date(Date.UTC(E.getUTCFullYear(), E.getUTCMonth() + 1, 1));
+      return { S: S, E: E, SPAN: E - S };
+    }
+    function 경고(b) {
+      var s = b.sched || {}, w = [];
+      if (s.intEnd && !s.intDone && days(TODAY, s.intEnd) > 0) w.push(["인테리어 " + days(TODAY, s.intEnd) + "일 늦음", "bad"]);
+      if (b.openDate && s.eduEnd && days(s.eduEnd, b.openDate) >= 0) w.push(["교육이 개원일 뒤에 끝남", "bad"]);
+      if (b.openDate && s.intEnd && days(b.openDate, s.intEnd) >= 0 && days(b.openDate, s.intEnd) < 7) w.push(["인테리어 끝과 개원 사이 " + days(b.openDate, s.intEnd) + "일", "warn"]);
+      if (b.openDate && days(b.openDate, TODAY) >= 0 && days(b.openDate, TODAY) <= 30 && 전체항목수 > 0 && (b.checksDone || 0) / 전체항목수 < 0.7) w.push(["개원 30일 안 · 준비 " + Math.round((b.checksDone || 0) / 전체항목수 * 100) + "%", "warn"]);
+      if (!s.intStart && b.openDate) w.push(["날짜가 아직 안 적힘", "warn"]);
+      return w;
+    }
+    function 줄그리기(b, i, R, x, 몰림수) {
+      var s = b.sched || {}, w = 경고(b);
+      var dd = b.openDate ? days(b.openDate, TODAY) : null;
+      var h = "<button type='button' class='sh-row" + (i === 고른 ? " sel" : "") + "' data-i='" + i + "'><div class='sh-gl'><div class='sh-nm'>" + esc(b.name || b.code) +
+        w.slice(0, 1).map(function (z) { return "<span class='sh-bd " + z[1] + "'>" + esc(z[0]) + "</span>"; }).join("") + "</div>" +
+        "<div class='sh-sb'><span>" + (b.status === "운영중" ? "개원 완료" : dd == null ? "개원일 미정" : dd >= 0 ? "개원 " + dd + "일 전" : "개원 " + (-dd) + "일 지남") + "</span>" +
+        (전체항목수 > 0 ? "<span class='sh-pg'><i style='width:" + Math.min(100, (b.checksDone || 0) / 전체항목수 * 100) + "%'></i></span><span>" + (b.checksDone || 0) + "/" + 전체항목수 + "</span>" : "") + "</div></div>" +
+        "<div class='sh-tr'>" +
+        "<div class='sh-today' style='left:" + x(TODAY) + "%'></div>" +
+        (s.lease ? "<div class='sh-mk lease' style='left:" + x(s.lease) + "%' title='임대 계약 " + md(s.lease) + "'></div>" : "") +
+        (s.intStart && s.intEnd ? "<div class='sh-seg int' style='left:" + x(s.intStart) + "%;width:" + Math.max(0.4, x(s.intEnd) - x(s.intStart)) + "%' title='인테리어 " + md(s.intStart) + " ~ " + md(s.intEnd) + "'></div>" : "") +
+        (s.intEnd && !s.intDone && days(TODAY, s.intEnd) > 0 ? "<div class='sh-seg int late' style='left:" + x(s.intEnd) + "%;width:" + Math.max(0.4, x(TODAY) - x(s.intEnd)) + "%' title='예정보다 " + days(TODAY, s.intEnd) + "일 늦음'></div>" : "") +
+        (s.eduStart && s.eduEnd ? "<div class='sh-seg edu' style='left:" + x(s.eduStart) + "%;width:" + Math.max(0.6, x(s.eduEnd) - x(s.eduStart)) + "%' title='직원 교육 " + md(s.eduStart) + " ~ " + md(s.eduEnd) + "'></div>" : "") +
+        (s.equipIn ? "<div class='sh-mk equip' style='left:" + x(s.equipIn) + "%' title='장비 입고 " + md(s.equipIn) + "'></div>" : "") +
+        (b.openDate ? "<div class='sh-mk open' style='left:" + x(b.openDate) + "%' title='개원 " + md(b.openDate) + "'></div><div class='sh-od' style='left:" + x(b.openDate) + "%'>" + md(b.openDate) + "</div>" : "") +
+        "</div></button>";
+      return h;
+    }
+    function 그리기() {
+      if (!줄들) return;
+      var R = 범위();
+      function x(s) { var t = d(s); return t ? Math.max(0, Math.min(100, (t - R.S) / R.SPAN * 100)) : null; }
+      var 열린 = [], 끝 = [];
+      줄들.forEach(function (b) { (b.status === "운영중" ? 끝 : 열린).push(b); });
+      function 개원차례(p, q) { return (p.openDate || "9999") < (q.openDate || "9999") ? -1 : 1; }
+      열린.sort(개원차례); 끝.sort(개원차례);
+      var 차례 = 열린.concat(끝);
+      // 위 숫자 카드 넷
+      var 곧 = 열린.filter(function (b) { return b.openDate && days(b.openDate, TODAY) >= 0 && days(b.openDate, TODAY) <= 30; }).length;
+      var 늦은 = 열린.filter(function (b) { return 경고(b).some(function (z) { return z[1] === "bad"; }); }).length;
+      var cnt = {};
+      열린.forEach(function (b) { if (b.openDate) { var k = b.openDate.slice(0, 7); cnt[k] = (cnt[k] || 0) + 1; } });
+      var 달들 = Object.keys(cnt).sort(function (p, q) { return cnt[q] - cnt[p]; });
+      var 꼭대기 = 달들.length ? 달들[0] : null;
+      document.getElementById("sched-cards").innerHTML =
+        "<div class='sh-kc'><b>" + 열린.length + "곳</b><span>개원 준비 중인 지점</span></div>" +
+        "<div class='sh-kc" + (곧 ? " warn" : "") + "'><b>" + 곧 + "곳</b><span>30일 안에 개원</span></div>" +
+        "<div class='sh-kc" + (늦은 ? " bad" : "") + "'><b>" + 늦은 + "곳</b><span>일정이 늦어진 지점</span></div>" +
+        "<div class='sh-kc" + (꼭대기 && cnt[꼭대기] >= 3 ? " bad" : "") + "'><b>" + (꼭대기 ? (+꼭대기.slice(5)) + "월 · " + cnt[꼭대기] + "곳" : "—") + "</b><span>개원이 가장 몰린 달</span></div>";
+      // 달 축 + 개원 몰림 띠
+      var M = [], t = new Date(R.S);
+      while (t < R.E) { var n = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 1)); M.push({ y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, w: (n - t) / R.SPAN * 100 }); t = n; }
+      var cols = M.map(function (k) { return k.w + "%"; }).join(" ");
+      var h = "<div class='sh-gr sh-axis'><div class='sh-gl'></div><div class='sh-months' style='grid-template-columns:" + cols + "'>" +
+        M.map(function (k) { return "<div>" + (k.m === 1 || k === M[0] ? "<b>" + k.y + "년</b> " : "") + k.m + "월</div>"; }).join("") + "</div></div>";
+      h += "<div class='sh-gr sh-axis'><div class='sh-gl'><span style='font-size:12px;color:var(--muted)'>개원 몰림</span></div><div class='sh-months sh-load' style='grid-template-columns:" + cols + "'>" +
+        M.map(function (k) { var c = cnt[k.y + "-" + ("0" + k.m).slice(-2)] || 0; return "<div class='" + (c >= 3 ? "n3" : c === 2 ? "n2" : c === 1 ? "n1" : "") + "'>" + (c ? c + "곳 개원" : "") + "</div>"; }).join("") + "</div></div>";
+      열린.forEach(function (b) { h += 줄그리기(b, 차례.indexOf(b), R, x); });
+      if (끝.length) {
+        h += "<button type='button' class='sh-done' id='sched-fold'>개원을 마친 지점 " + 끝.length + "곳 " + (접힘펼침 ? "▾ 접기" : "▸ 펼치기") + "</button>";
+        if (접힘펼침) 끝.forEach(function (b) { h += 줄그리기(b, 차례.indexOf(b), R, x); });
+      }
+      var gt = document.getElementById("sched-gt");
+      gt.innerHTML = h;
+      var ax = gt.querySelector(".sh-months");
+      if (ax && x(TODAY) != null) {
+        var lab = document.createElement("div");
+        lab.className = "sh-todaylab"; lab.style.left = x(TODAY) + "%";
+        lab.textContent = "오늘 " + md(TODAY);
+        ax.appendChild(lab);
+      }
+      gt.querySelectorAll(".sh-row").forEach(function (r) {
+        r.addEventListener("click", function () { 고른 = +r.getAttribute("data-i"); 그리기(); 고치기판(차례); });
+      });
+      var fold = document.getElementById("sched-fold");
+      if (fold) fold.addEventListener("click", function () { 접힘펼침 = !접힘펼침; 그리기(); });
+    }
+    function 고치기판(차례) {
+      var sh = document.getElementById("sched-sheet");
+      if (고른 < 0 || !차례[고른]) { sh.hidden = true; return; }
+      var b = 차례[고른];
+      var s = b.sched || (b.sched = {});
+      sh.textContent = "";
+      var h2 = document.createElement("h2"); h2.textContent = (b.name || b.code) + " 일정 고치기";
+      var p = document.createElement("p"); p.className = "sh-p"; p.textContent = "날짜를 바꾸면 아래 일정표에 바로 반영됩니다.";
+      var fg = document.createElement("div"); fg.className = "sh-fg";
+      var F = [["lease", "임대 계약일", "--sch-lease"], ["intStart", "인테리어 시작일", "--accent"], ["intEnd", "인테리어 종료 예상일", "--accent"],
+               ["equipIn", "장비 입고일", "--sch-equip"], ["eduStart", "직원 교육 시작", "--sch-edu"], ["eduEnd", "직원 교육 끝", "--sch-edu"]];
+      var say = document.createElement("div"); say.className = "sh-say";
+      function 말하기() {
+        var w = 경고(b);
+        if (s.intStart && s.intEnd && days(s.intEnd, s.intStart) < 0) { say.className = "sh-say bad"; say.textContent = "인테리어 종료 예상일이 시작일보다 앞입니다"; return; }
+        if (!w.length) { say.className = "sh-say ok"; say.textContent = "걸리는 것이 없습니다"; return; }
+        say.className = "sh-say" + (w.some(function (z) { return z[1] === "bad"; }) ? " bad" : "");
+        say.textContent = "확인할 것: " + w.map(function (z) { return z[0]; }).join(" · ");
+      }
+      F.forEach(function (f) {
+        var box = document.createElement("div"); box.className = "sh-f";
+        var lab = document.createElement("label");
+        var dot = document.createElement("i"); dot.style.background = "var(" + f[2] + ")";
+        lab.appendChild(dot); lab.appendChild(document.createTextNode(f[1]));
+        var inp = document.createElement("input"); inp.type = "date"; inp.value = s[f[0]] || "";
+        inp.setAttribute("aria-label", f[1]);
+        inp.addEventListener("input", function () { s[f[0]] = inp.value; 그리기(); 말하기(); });
+        box.appendChild(lab); box.appendChild(inp); fg.appendChild(box);
+      });
+      var done = document.createElement("label"); done.className = "sh-intdone";
+      var chk = document.createElement("input"); chk.type = "checkbox"; chk.checked = !!s.intDone;
+      chk.addEventListener("change", function () { s.intDone = chk.checked; 그리기(); 말하기(); });
+      done.appendChild(chk); done.appendChild(document.createTextNode("인테리어 끝남"));
+      var openline = document.createElement("div"); openline.className = "sh-openline";
+      openline.innerHTML = "개원일 <b>" + esc(md(b.openDate)) + "</b> — 개원일은 본사 포털 지점 탭에서 고칩니다.";
+      var acts = document.createElement("div"); acts.className = "sh-acts";
+      var cls = document.createElement("button"); cls.type = "button"; cls.className = "sh-btn"; cls.textContent = "닫기";
+      cls.addEventListener("click", function () { 고른 = -1; sh.hidden = true; 그리기(); });
+      var sav = document.createElement("button"); sav.type = "button"; sav.className = "sh-btn pri"; sav.textContent = "저장";
+      sav.addEventListener("click", function () {
+        if (!열쇠()) { 문보이기(); return; }
+        say.className = "sh-say"; say.textContent = "저장 중…";
+        fetch(STORE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ editKey: 열쇠(), branch: b.code, sched: { lease: s.lease || "", intStart: s.intStart || "", intEnd: s.intEnd || "", intDone: !!s.intDone, equipIn: s.equipIn || "", eduStart: s.eduStart || "", eduEnd: s.eduEnd || "" } })
+        }).then(function (r) { return r.json(); }).then(function (res) {
+          if (res && res.ok) { say.className = "sh-say ok"; say.textContent = "저장됨 ✓"; return; }
+          if (res && res.error === "bad_edit_key") {
+            try { sessionStorage.removeItem("pxr-edit-key"); } catch (e) {}
+            문보이기("비밀번호가 맞지 않습니다 — 다시 입력해 주세요.");
+            return;
+          }
+          if (res && res.error === "bad_sched") { say.className = "sh-say bad"; say.textContent = "날짜 꼴이 맞지 않습니다 — 날짜를 다시 확인해 주세요."; return; }
+          say.className = "sh-say bad"; say.textContent = "저장하지 못했습니다 — 잠시 후 다시 눌러 주세요.";
+        }).catch(function () { say.className = "sh-say bad"; say.textContent = "연결이 안 됩니다 — 잠시 후 다시 눌러 주세요."; });
+      });
+      acts.appendChild(cls); acts.appendChild(sav);
+      sh.appendChild(h2); sh.appendChild(p); sh.appendChild(fg); sh.appendChild(done); sh.appendChild(openline); sh.appendChild(say); sh.appendChild(acts);
+      sh.hidden = false;
+      말하기();
+    }
+    function 자료읽기() {
+      알림("일정을 불러오는 중…");
+      fetch(STORE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ editKey: 열쇠(), schedList: true })
+      }).then(function (r) { return r.json(); }).then(function (res) {
+        if (res && res.ok && res.branches) { 줄들 = res.branches; 알림(""); 그리기(); return; }
+        if (res && res.error === "bad_edit_key") {
+          try { sessionStorage.removeItem("pxr-edit-key"); } catch (e) {}
+          문보이기("비밀번호가 맞지 않습니다 — 다시 입력해 주세요.");
+          return;
+        }
+        알림("일정을 불러오지 못했습니다 — 잠시 후 다시 열어 주세요.");
+      }).catch(function () { 알림("일정을 불러오지 못했습니다 — 잠시 후 다시 열어 주세요."); });
+    }
+    function 문열기() {
+      document.getElementById("sched-gate").hidden = true;
+      document.getElementById("sched-area").hidden = false;
+      자료읽기();
+    }
+    document.getElementById("sched-open").addEventListener("click", function () {
+      var v = document.getElementById("sched-pw").value;
+      if (!v) { document.getElementById("sched-gate-err").textContent = "비밀번호를 입력해 주세요."; return; }
+      try { sessionStorage.setItem("pxr-edit-key", v); } catch (e) {}
+      document.getElementById("sched-pw").value = "";
+      문열기();
+    });
+    document.getElementById("sched-pw").addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter") document.getElementById("sched-open").click();
+    });
+    fetchConfig().then(function (cfg) {
+      var secs = cfg ? cfg.sections : 기본SECTIONS정의();
+      var n = 0;
+      secs.forEach(function (sec) { sec.items.forEach(function (it) { if (!it.hidden && !it.retired) n++; }); });
+      전체항목수 = n;
+      if (줄들) 그리기();
+    });
+    if (열쇠()) 문열기(); else 문보이기();
+  }
+  if (qs.get("sched") !== null) { 전체일정화면(); return; }
   if (qs.get("edit") !== null) { 편집화면(); return; }
 
   if (!/^BR-\d{3}$/.test(BRANCH_CODE)) {
