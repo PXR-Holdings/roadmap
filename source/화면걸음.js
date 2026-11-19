@@ -394,14 +394,17 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)); i++) await 자기(300);
       검(/저장됨 ✓/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)), "고치기 — 저장됨(창구 판정 통과)");
       검(가짜.일정[0].sched.intEnd === "2026-12-05" && 가짜.일정[0].sched.intDone === false, "고치기 — 창구 자료의 그 지점 sched 만 바뀜", 가짜.일정[0].sched.intEnd);
-      // 동시 저장 겹침(conflict · 서버 규약 11/19) — 저장 안 됐다는 글 + 다시 누르면 저장됨(warn 칸 있어도 성공)
+      // 동시 저장 겹침(conflict · 서버 규약 11/19) — 다른 곳 저장이 먼저: 안내 글 + 최신을 다시 불러와 칸 새로 그림(총괄 11/19) · 다시 저장은 성공(warn 칸 있어도)
+      가짜.일정[0].sched.intEnd = "2026-12-20";   // 다른 곳에서 방금 고친 값(겹침의 원인)
       가짜.일정충돌 = 1; 가짜.일정경고 = true;
       await 평가(`[...document.querySelectorAll("#sched-sheet .sh-btn")].find(b => b.textContent === "저장").click()`);
-      for (let i = 0; i < 20 && !/겹쳐/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)); i++) await 자기(300);
-      검(/저장이 겹쳐 이번에는 저장되지 않았습니다 — 다시 한 번 눌러 주세요/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)), "고치기 — 저장 겹침이면 다시 시도 글(저장 0)");
+      for (let i = 0; i < 20 && !/다시 불러왔습니다/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)); i++) await 자기(300);
+      검(/다른 곳에서 방금 고쳐 최신 일정을 다시 불러왔습니다 — 확인한 뒤 다시 저장해 주세요/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)), "고치기 — 저장 겹침이면 안내 글 + 최신 다시 불러옴(저장 0)");
+      검(await 평가(`document.querySelectorAll("#sched-sheet input[type=date]")[2].value`) === "2026-12-20", "고치기 — 겹침 뒤 칸이 다른 곳이 고친 최신 값으로 새로 그려짐");
       await 평가(`[...document.querySelectorAll("#sched-sheet .sh-btn")].find(b => b.textContent === "저장").click()`);
       for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)); i++) await 자기(300);
-      검(/저장됨 ✓/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)), "고치기 — 겹침 뒤 다시 누르면 저장됨 · 이력 경고 칸(warn)은 성공으로");
+      검(/저장됨 ✓/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)), "고치기 — 겹침 뒤 다시 저장하면 저장됨 · 이력 경고 칸(warn)은 성공으로");
+      검(가짜.일정[0].sched.intEnd === "2026-12-20", "고치기 — 다시 저장이 최신 값 그대로(옛 값으로 되덮지 않음)", 가짜.일정[0].sched.intEnd);
       가짜.일정경고 = false;
       await 평가(`sessionStorage.setItem("pxr-edit-key", "9999")`);
       await 평가(`[...document.querySelectorAll("#sched-sheet .sh-btn")].find(b => b.textContent === "저장").click()`);

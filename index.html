@@ -1065,7 +1065,8 @@
     document.title = "픽세라 개원 로드맵 — 전체 지점 개원 일정";
     var 줄들 = null;       // 창구 일정 묶음 답(지점별 code·name·status·openDate·sched·checksDone)
     var 전체항목수 = 0;    // 진행률 분모 — 목록 자료(?config)에서 셈
-    var 고른 = -1;
+    var 고른 = "";         // 고른 지점 코드("" = 없음) — 다시 불러와도 같은 지점 판을 새로 그릴 수 있게 코드로 쥠
+    var 알림한번 = "";     // 고치기판을 새로 그린 직후 한 번만 보일 글(저장 겹침 안내)
     var 접힘펼침 = false;
     function esc(t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]; }); }
     function 열쇠() { try { return sessionStorage.getItem("pxr-edit-key") || ""; } catch (e) { return ""; } }
@@ -1111,7 +1112,7 @@
     function 줄그리기(b, i, R, x, 몰림수) {
       var s = b.sched || {}, w = 경고(b);
       var dd = b.openDate ? days(b.openDate, TODAY) : null;
-      var h = "<button type='button' class='sh-row" + (i === 고른 ? " sel" : "") + "' data-i='" + i + "'><div class='sh-gl'><div class='sh-nm'>" + esc(b.name || b.code) +
+      var h = "<button type='button' class='sh-row" + (b.code === 고른 ? " sel" : "") + "' data-i='" + esc(b.code) + "'><div class='sh-gl'><div class='sh-nm'>" + esc(b.name || b.code) +
         w.slice(0, 1).map(function (z) { return "<span class='sh-bd " + z[1] + "'>" + esc(z[0]) + "</span>"; }).join("") + "</div>" +
         "<div class='sh-sb'><span>" + (b.status === "운영중" ? "개원 완료" : dd == null ? "개원일 미정" : dd >= 0 ? "개원 " + dd + "일 전" : "개원 " + (-dd) + "일 지남") + "</span>" +
         (전체항목수 > 0 ? "<span class='sh-pg'><i style='width:" + Math.min(100, (b.checksDone || 0) / 전체항목수 * 100) + "%'></i></span><span>" + (b.checksDone || 0) + "/" + 전체항목수 + "</span>" : "") + "</div></div>" +
@@ -1170,15 +1171,16 @@
         ax.appendChild(lab);
       }
       gt.querySelectorAll(".sh-row").forEach(function (r) {
-        r.addEventListener("click", function () { 고른 = +r.getAttribute("data-i"); 그리기(); 고치기판(차례); });
+        r.addEventListener("click", function () { 고른 = r.getAttribute("data-i"); 그리기(); 고치기판(); });
       });
       var fold = document.getElementById("sched-fold");
       if (fold) fold.addEventListener("click", function () { 접힘펼침 = !접힘펼침; 그리기(); });
     }
-    function 고치기판(차례) {
+    function 고치기판() {
       var sh = document.getElementById("sched-sheet");
-      if (고른 < 0 || !차례[고른]) { sh.hidden = true; return; }
-      var b = 차례[고른];
+      var b = null;
+      (줄들 || []).forEach(function (z) { if (z.code === 고른) b = z; });
+      if (!b) { sh.hidden = true; return; }
       var s = b.sched || (b.sched = {});
       sh.textContent = "";
       var h2 = document.createElement("h2"); h2.textContent = (b.name || b.code) + " 일정 고치기";
@@ -1212,7 +1214,7 @@
       openline.innerHTML = "개원일 <b>" + esc(md(b.openDate)) + "</b> — 개원일은 본사 포털 지점 탭에서 고칩니다.";
       var acts = document.createElement("div"); acts.className = "sh-acts";
       var cls = document.createElement("button"); cls.type = "button"; cls.className = "sh-btn"; cls.textContent = "닫기";
-      cls.addEventListener("click", function () { 고른 = -1; sh.hidden = true; 그리기(); });
+      cls.addEventListener("click", function () { 고른 = ""; sh.hidden = true; 그리기(); });
       var sav = document.createElement("button"); sav.type = "button"; sav.className = "sh-btn pri"; sav.textContent = "저장";
       sav.addEventListener("click", function () {
         if (!열쇠()) { 문보이기(); return; }
@@ -1229,7 +1231,24 @@
             return;
           }
           if (res && res.error === "bad_sched") { say.className = "sh-say bad"; say.textContent = "날짜 꼴이 맞지 않습니다 — 날짜를 다시 확인해 주세요."; return; }
-          if (res && res.error === "conflict") { say.className = "sh-say bad"; say.textContent = "저장이 겹쳐 이번에는 저장되지 않았습니다 — 다시 한 번 눌러 주세요."; return; }
+          if (res && res.error === "conflict") {
+            // 겹침 = 다른 곳의 저장이 먼저 들어감 — 내 칸이 옛 값일 수 있어 최신을 다시 불러와 판을 새로 그림(총괄 11/19)
+            say.className = "sh-say bad"; say.textContent = "다른 곳에서 방금 고쳤습니다 — 최신 일정을 다시 불러옵니다…";
+            fetch(STORE_URL + "/sched", {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({ editKey: 열쇠(), schedList: true })
+            }).then(function (r2) { return r2.json(); }).then(function (res2) {
+              if (res2 && res2.ok && res2.branches) {
+                줄들 = res2.branches;
+                알림한번 = "다른 곳에서 방금 고쳐 최신 일정을 다시 불러왔습니다 — 확인한 뒤 다시 저장해 주세요.";
+                그리기(); 고치기판();
+                return;
+              }
+              say.className = "sh-say bad"; say.textContent = "다른 곳에서 방금 고쳤습니다 — 일정을 다시 불러오지 못했습니다. 화면을 다시 열어 주세요.";
+            }).catch(function () { say.className = "sh-say bad"; say.textContent = "다른 곳에서 방금 고쳤습니다 — 일정을 다시 불러오지 못했습니다. 화면을 다시 열어 주세요."; });
+            return;
+          }
           say.className = "sh-say bad"; say.textContent = "저장하지 못했습니다 — 잠시 후 다시 눌러 주세요.";
         }).catch(function () { say.className = "sh-say bad"; say.textContent = "연결이 안 됩니다 — 잠시 후 다시 눌러 주세요."; });
       });
@@ -1237,6 +1256,7 @@
       sh.appendChild(h2); sh.appendChild(p); sh.appendChild(fg); sh.appendChild(done); sh.appendChild(openline); sh.appendChild(say); sh.appendChild(acts);
       sh.hidden = false;
       말하기();
+      if (알림한번) { say.className = "sh-say bad"; say.textContent = 알림한번; 알림한번 = ""; }
     }
     function 자료읽기() {
       알림("일정을 불러오는 중…");
