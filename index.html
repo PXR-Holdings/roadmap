@@ -1229,6 +1229,7 @@
             return;
           }
           if (res && res.error === "bad_sched") { say.className = "sh-say bad"; say.textContent = "날짜 꼴이 맞지 않습니다 — 날짜를 다시 확인해 주세요."; return; }
+          if (res && res.error === "conflict") { say.className = "sh-say bad"; say.textContent = "저장이 겹쳐 이번에는 저장되지 않았습니다 — 다시 한 번 눌러 주세요."; return; }
           say.className = "sh-say bad"; say.textContent = "저장하지 못했습니다 — 잠시 후 다시 눌러 주세요.";
         }).catch(function () { say.className = "sh-say bad"; say.textContent = "연결이 안 됩니다 — 잠시 후 다시 눌러 주세요."; });
       });

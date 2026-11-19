@@ -70,7 +70,8 @@ async function 가짜답(p, sid) {
       else if (Object.keys(j.sched).some(k => !칸들.includes(k)) ||
                칸들.some(k => k !== "intDone" && j.sched[k] && !/^\d{4}-\d{2}-\d{2}$/.test(j.sched[k])) ||
                ("intDone" in j.sched && typeof j.sched.intDone !== "boolean")) 답 = { ok: false, error: "bad_sched" };
-      else { 줄.sched = j.sched; 답 = { ok: true, savedAt: new Date().toISOString() }; }   // 보낸 칸만 남음(통째 교체 — 서버 꼴)
+      else if (가짜.일정충돌 > 0) { 가짜.일정충돌--; 답 = { ok: false, error: "conflict" }; }   // 동시 저장 겹침 — 저장 0(서버 규약 11/19 조건부 쓰기 상한)
+      else { 줄.sched = j.sched; 답 = { ok: true, savedAt: new Date().toISOString() }; if (가짜.일정경고) 답.warn = "log_failed"; }   // 보낸 칸만 남음(통째 교체 — 서버 꼴) · warn = 이력만 못 남음(저장은 됨)
     }
     else 답 = { ok: false, error: "bad_request" };
   }
@@ -393,6 +394,15 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)); i++) await 자기(300);
       검(/저장됨 ✓/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)), "고치기 — 저장됨(창구 판정 통과)");
       검(가짜.일정[0].sched.intEnd === "2026-12-05" && 가짜.일정[0].sched.intDone === false, "고치기 — 창구 자료의 그 지점 sched 만 바뀜", 가짜.일정[0].sched.intEnd);
+      // 동시 저장 겹침(conflict · 서버 규약 11/19) — 저장 안 됐다는 글 + 다시 누르면 저장됨(warn 칸 있어도 성공)
+      가짜.일정충돌 = 1; 가짜.일정경고 = true;
+      await 평가(`[...document.querySelectorAll("#sched-sheet .sh-btn")].find(b => b.textContent === "저장").click()`);
+      for (let i = 0; i < 20 && !/겹쳐/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)); i++) await 자기(300);
+      검(/저장이 겹쳐 이번에는 저장되지 않았습니다 — 다시 한 번 눌러 주세요/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)), "고치기 — 저장 겹침이면 다시 시도 글(저장 0)");
+      await 평가(`[...document.querySelectorAll("#sched-sheet .sh-btn")].find(b => b.textContent === "저장").click()`);
+      for (let i = 0; i < 20 && !/저장됨/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)); i++) await 자기(300);
+      검(/저장됨 ✓/.test(await 평가(`document.querySelector("#sched-sheet .sh-say").textContent`)), "고치기 — 겹침 뒤 다시 누르면 저장됨 · 이력 경고 칸(warn)은 성공으로");
+      가짜.일정경고 = false;
       await 평가(`sessionStorage.setItem("pxr-edit-key", "9999")`);
       await 평가(`[...document.querySelectorAll("#sched-sheet .sh-btn")].find(b => b.textContent === "저장").click()`);
       for (let i = 0; i < 20 && (await 평가(`document.getElementById("sched-gate").hidden`)); i++) await 자기(300);
