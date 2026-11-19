@@ -57,29 +57,27 @@ function 콘솔모으기() {
 async function 가짜답(p, sid) {
   const 몸머리 = [{ name: "Content-Type", value: "application/json" }, { name: "Access-Control-Allow-Origin", value: "*" }];
   let 답;
-  if (p.request.method === "POST") {
+  if (p.request.method === "POST" && /\/sched(\?|#|$)/.test(p.request.url)) {
+    // 전체 일정 문 둘(접점 v0.1 · 서버 방 11/19: 같은 창구 주소 뒤 /sched) — 본문 꼴은 접점 그대로
     let j = {};
     try { j = JSON.parse(p.request.postData || "{}"); } catch {}
-    if (j && j.editKey !== undefined && j.schedList) {
-      // 전체 일정 묶음 읽기(접점 v0.1) — 지문 맞을 때만 전 지점 한 번에
-      답 = j.editKey === "편집키1122"
-        ? { ok: true, branches: JSON.parse(JSON.stringify(가짜.일정 || [])), savedAt: new Date().toISOString() }
-        : { ok: false, error: "bad_edit_key" };
-    }
-    else if (j && j.editKey !== undefined && j.branch && j.sched) {
-      // 일정 쓰기(접점 v0.1) — 그 지점 sched 만 통째 교체 · 꼴 검사
+    if (j.editKey !== "편집키1122") 답 = { ok: false, error: "bad_edit_key" };
+    else if (j.schedList) 답 = { ok: true, branches: JSON.parse(JSON.stringify(가짜.일정 || [])), savedAt: new Date().toISOString() };
+    else if (j.branch && j.sched) {
       const 칸들 = ["lease", "intStart", "intEnd", "intDone", "equipIn", "eduStart", "eduEnd"];
-      if (j.editKey !== "편집키1122") 답 = { ok: false, error: "bad_edit_key" };
-      else {
-        const 줄 = (가짜.일정 || []).find(b => b.code === j.branch);
-        if (!줄) 답 = { ok: false, error: "bad_branch" };
-        else if (Object.keys(j.sched).some(k => !칸들.includes(k)) ||
-                 칸들.some(k => k !== "intDone" && j.sched[k] && !/^\d{4}-\d{2}-\d{2}$/.test(j.sched[k])) ||
-                 typeof j.sched.intDone !== "boolean") 답 = { ok: false, error: "bad_sched" };
-        else { 줄.sched = j.sched; 답 = { ok: true, savedAt: new Date().toISOString() }; }
-      }
+      const 줄 = (가짜.일정 || []).find(b => b.code === j.branch);
+      if (!줄) 답 = { ok: false, error: "bad_branch" };
+      else if (Object.keys(j.sched).some(k => !칸들.includes(k)) ||
+               칸들.some(k => k !== "intDone" && j.sched[k] && !/^\d{4}-\d{2}-\d{2}$/.test(j.sched[k])) ||
+               ("intDone" in j.sched && typeof j.sched.intDone !== "boolean")) 답 = { ok: false, error: "bad_sched" };
+      else { 줄.sched = j.sched; 답 = { ok: true, savedAt: new Date().toISOString() }; }   // 보낸 칸만 남음(통째 교체 — 서버 꼴)
     }
-    else if (j && (j.editKey !== undefined || (j.config && !j.branch))) {
+    else 답 = { ok: false, error: "bad_request" };
+  }
+  else if (p.request.method === "POST") {
+    let j = {};
+    try { j = JSON.parse(p.request.postData || "{}"); } catch {}
+    if (j && (j.editKey !== undefined || (j.config && !j.branch))) {
       // 목록 편집 저장(접점 v0) — 창구가 본사용 편집 비밀번호 지문으로 판정하는 꼴을 흉내
       if (j.editKey === "편집키1122" && j.config) { 가짜.설정 = j.config; 답 = { ok: true, savedAt: new Date().toISOString() }; }
       else 답 = { ok: false, error: "bad_edit_key" };

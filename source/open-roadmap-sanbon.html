@@ -1201,7 +1201,7 @@
       sav.addEventListener("click", function () {
         if (!열쇠()) { 문보이기(); return; }
         say.className = "sh-say"; say.textContent = "저장 중…";
-        fetch(STORE_URL, {
+        fetch(STORE_URL + "/sched", {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ editKey: 열쇠(), branch: b.code, sched: { lease: s.lease || "", intStart: s.intStart || "", intEnd: s.intEnd || "", intDone: !!s.intDone, equipIn: s.equipIn || "", eduStart: s.eduStart || "", eduEnd: s.eduEnd || "" } })
@@ -1223,7 +1223,8 @@
     }
     function 자료읽기() {
       알림("일정을 불러오는 중…");
-      fetch(STORE_URL, {
+      // 일정 문 둘은 같은 창구의 /sched 뒤(서버 방 11/19 — 첫째 함수 인라인 상한)
+      fetch(STORE_URL + "/sched", {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ editKey: 열쇠(), schedList: true })
