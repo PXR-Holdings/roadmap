@@ -469,7 +469,9 @@
   .sh-mk.open { width: 13px; height: 16px; background: var(--sch-open); border-radius: 2px 8px 8px 2px; margin: -8px 0 0 0; }
   .sh-od { position: absolute; top: 50%; margin-top: -9px; font-size: 11.5px; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; padding-left: 18px; }
   .sh-today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--sch-today); z-index: 2; pointer-events: none; }
-  .sh-todaylab { position: absolute; top: 2px; font-size: 10.5px; color: var(--sch-today); font-weight: 700; white-space: nowrap; transform: translateX(4px); }
+  .sh-todayrow { position: relative; height: 18px; }   /* 오늘 글 제 줄 — 달 이름과 안 겹치게(대표 11/19) */
+  .sh-todaylab { position: absolute; top: 1px; font-size: 10.5px; color: var(--sch-today); font-weight: 700; white-space: nowrap; transform: translateX(4px); }
+  .sh-todaylab.flip { transform: translateX(-100%) translateX(-6px); }
   .sh-done { border-top: 1px solid var(--line); padding: 9px 6px; color: var(--muted); font-size: 12.5px; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; width: 100%; text-align: left; cursor: pointer; font: inherit; }
   .sh-sheet { background: var(--surface); border: 1.5px solid var(--accent); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
   .sh-sheet h2 { margin: 0 0 2px; font-size: 16px; }
@@ -1051,6 +1053,7 @@
     var 전체항목수 = 0;    // 진행률 분모 — 목록 자료(?config)에서 셈
     var 고른 = "";         // 고른 지점 코드("" = 없음) — 다시 불러와도 같은 지점 판을 새로 그릴 수 있게 코드로 쥠
     var 알림한번 = "";     // 고치기판을 새로 그린 직후 한 번만 보일 글(저장 겹침 안내)
+    var 처음스크롤 = false; // 처음 한 번만 오늘 자리로 옆 스크롤
     var 접힘펼침 = false;
     function esc(t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]; }); }
     function 열쇠() { try { return sessionStorage.getItem("pxr-edit-key") || ""; } catch (e) { return ""; } }
@@ -1138,6 +1141,7 @@
       var cols = M.map(function (k) { return k.w + "%"; }).join(" ");
       var h = "<div class='sh-gr sh-axis'><div class='sh-gl'></div><div class='sh-months' style='grid-template-columns:" + cols + "'>" +
         M.map(function (k) { return "<div>" + (k.m === 1 || k === M[0] ? "<b>" + k.y + "년</b> " : "") + k.m + "월</div>"; }).join("") + "</div></div>";
+      h += "<div class='sh-gr sh-axis'><div class='sh-gl'></div><div class='sh-todayrow' id='sched-todayrow'></div></div>";
       h += "<div class='sh-gr sh-axis'><div class='sh-gl'><span style='font-size:12px;color:var(--muted)'>개원 몰림</span></div><div class='sh-months sh-load' style='grid-template-columns:" + cols + "'>" +
         M.map(function (k) { var c = cnt[k.y + "-" + ("0" + k.m).slice(-2)] || 0; return "<div class='" + (c >= 3 ? "n3" : c === 2 ? "n2" : c === 1 ? "n1" : "") + "'>" + (c ? c + "곳 개원" : "") + "</div>"; }).join("") + "</div></div>";
       열린.forEach(function (b) { h += 줄그리기(b, 차례.indexOf(b), R, x); });
@@ -1147,12 +1151,25 @@
       }
       var gt = document.getElementById("sched-gt");
       gt.innerHTML = h;
-      var ax = gt.querySelector(".sh-months");
-      if (ax && x(TODAY) != null) {
+      var 오늘줄칸 = document.getElementById("sched-todayrow");
+      if (오늘줄칸 && x(TODAY) != null) {
+        var tick = document.createElement("div");
+        tick.className = "sh-today"; tick.style.left = x(TODAY) + "%";
+        오늘줄칸.appendChild(tick);
         var lab = document.createElement("div");
-        lab.className = "sh-todaylab"; lab.style.left = x(TODAY) + "%";
+        // 오른쪽 끝 가까우면 글을 선 왼쪽으로 뒤집어 판 밖으로 안 나가게
+        lab.className = "sh-todaylab" + (x(TODAY) > 70 ? " flip" : "");
+        lab.style.left = x(TODAY) + "%";
         lab.textContent = "오늘 " + md(TODAY);
-        ax.appendChild(lab);
+        오늘줄칸.appendChild(lab);
+      }
+      // 처음 열 때 오늘 선이 보이게 — 선이 화면 2/3 밖이면 왼쪽 1/3 자리로 옆 스크롤(지점 이름 칸 구조는 그대로 · 대표 11/19)
+      var sc = gt.parentElement;
+      if (!처음스크롤 && sc && 오늘줄칸 && x(TODAY) != null && sc.scrollWidth > sc.clientWidth + 2) {
+        처음스크롤 = true;
+        var 줄왼 = 오늘줄칸.getBoundingClientRect(), 판왼 = gt.getBoundingClientRect();
+        var 선왼 = (줄왼.left - 판왼.left) + 줄왼.width * (x(TODAY) / 100);
+        if (선왼 > sc.scrollLeft + sc.clientWidth * 0.66) sc.scrollLeft = Math.max(0, 선왼 - sc.clientWidth / 3);
       }
       gt.querySelectorAll(".sh-row").forEach(function (r) {
         r.addEventListener("click", function () { 고른 = r.getAttribute("data-i"); 그리기(); 고치기판(); });

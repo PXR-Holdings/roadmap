@@ -378,6 +378,7 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       검(/12월 · 3곳[\s\S]*개원이 가장 몰린 달/.test(글), "전체 일정 — 몰린 달 카드(12월 3곳)");
       검(/인테리어 \d+일 늦음/.test(글), "전체 일정 — 늦어짐 경고 배지(종료 예상 지남)");
       검(await 평가(`!!document.querySelector(".sh-load .n3")`), "전체 일정 — 개원 몰림 띠(3곳 빨강)");
+      검(await 평가(`(() => { const lab = document.querySelector(".sh-todaylab"); if (!lab || !lab.closest(".sh-todayrow")) return false; const L = lab.getBoundingClientRect(); return ![...document.querySelectorAll(".sh-months > div")].some(c => { const R = c.getBoundingClientRect(); return !(L.right <= R.left || L.left >= R.right || L.bottom <= R.top || L.top >= R.bottom); }); })()`), "전체 일정 — 오늘 글이 제 줄에 · 달 이름과 안 겹침(대표 ①)");
       검(await 평가(`document.querySelector(".sh-row .sh-nm").textContent`).then(t => /분당미금점/.test(t)), "전체 일정 — 개원 빠른 순(분당미금 먼저)");
       검(/개원을 마친 지점 1곳/.test(글), "전체 일정 — 마친 지점 접힘 줄");
       await 평가(`document.getElementById("sched-fold").click()`); await 자기(400);
@@ -417,8 +418,19 @@ async function 캡처(이름) { const r = await 보내기("Page.captureScreensho
       await 자기(1500); 콘솔모으기();
       검(await 평가(`document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2`), "폰 폭 — 판 전체는 옆으로 안 밀림");
       검(await 평가(`(() => { const s = document.querySelector(".sh-sc"); return s && s.scrollWidth > s.clientWidth; })()`), "폰 폭 — 일정표만 가로 스크롤");
+      검(await 평가(`(() => { const s = document.querySelector(".sh-sc"); return s && s.scrollLeft > 0; })()`), "폰 폭 — 처음 열 때 오늘 자리로 옆 스크롤돼 있음(대표 ②)");
+      검(await 평가(`(() => { const s = document.querySelector(".sh-sc"), lab = document.querySelector(".sh-todaylab"); if (!s || !lab) return false; const B = s.getBoundingClientRect(), L = lab.getBoundingClientRect(); const p = (L.left - B.left) / B.width; return p > 0.05 && p < 0.65; })()`), "폰 폭 — 오늘 선이 화면 왼쪽 1/3 언저리에 보임");
       await 캡처("17-전체일정폰");
       await 보내기("Emulation.setDeviceMetricsOverride", { width: 1200, height: 900, deviceScaleFactor: 1, mobile: false }, S);
+      // 오늘 글 — 달 끝·달 첫날(달 경계 양쪽)에도 달 이름과 안 겹치는지(대표 ① 확인 조건) — 페이지 시계만 바꿔 다시 열어 봄
+      for (const 가짜오늘 of ["2026-11-30", "2026-12-01"]) {
+        const { identifier } = await 보내기("Page.addScriptToEvaluateOnNewDocument", { source: `(() => { const R = Date, T = "${가짜오늘}T09:00:00"; const F = function () { return arguments.length ? new (Function.prototype.bind.apply(R, [null].concat([].slice.call(arguments))))() : new R(T); }; F.UTC = R.UTC; F.parse = R.parse; F.now = () => new R(T).getTime(); F.prototype = R.prototype; window.Date = F; })()` }, S);
+        await 가기("/?sched", /전체 지점 개원 일정/);
+        await 자기(1200); 콘솔모으기();
+        검(new RegExp("오늘 " + (+가짜오늘.slice(5, 7)) + "월 " + (+가짜오늘.slice(8)) + "일").test(await 평가(`(document.querySelector(".sh-todaylab") || { textContent: "" }).textContent`)), "오늘 글(" + 가짜오늘 + ") — 제 줄에 뜸");
+        검(await 평가(`(() => { const lab = document.querySelector(".sh-todaylab"); if (!lab) return false; const L = lab.getBoundingClientRect(); return ![...document.querySelectorAll(".sh-months > div")].some(c => { const R = c.getBoundingClientRect(); return !(L.right <= R.left || L.left >= R.right || L.bottom <= R.top || L.top >= R.bottom); }); })()`), "오늘 글(" + 가짜오늘 + ") — 달 이름과 안 겹침");
+        await 보내기("Page.removeScriptToEvaluateOnNewDocument", { identifier }, S);
+      }
       가짜.일정 = null; 가짜.설정 = null; 가짜.목록 = null;
     }
 
